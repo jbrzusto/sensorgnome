@@ -88,6 +88,8 @@ AllOut = new SafeStream(TheMatron, "all", ".txt", 1000000, 3600);
 
 Uploader = new (require('./uploader.js').Uploader) (TheMatron);
 
+Relay = new (require('./relay.js').Relay) (TheMatron, 59000);
+
 var clockNotSet = true;
 
 function do_nothing(err, stdout, stderr) {
@@ -135,3 +137,5 @@ WebServer.start();
 // Start the tagFinder
 
 TagFinder.start();
+
+// Start the relay, which can resend messages from the matron to an arbitrary port
