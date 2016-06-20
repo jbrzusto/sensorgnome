@@ -1,0 +1,198 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script>
+      function loadScript (src, callback) {
+         var script= document.createElement('script');
+         script.type= 'text/javascript';
+         script.onload = callback;
+         script.src= src;
+         document.getElementsByTagName('head')[0].appendChild(script);
+      };
+
+      window.onload = function() {
+          loadScript("javascripts/sensorgnome.js");
+      };
+    </script>
+  </head>
+  <body>
+    <h2 id="maintitle"> Loading SensorGnome Scripts... this may take a while</h2>
+    <p>
+      My machine ID is <span id="machine_id">.<blink>.</blink>.</span>.
+      <br>
+      I'm running the <span id="version">.<blink>.</blink>. </span> software release.
+      <br>
+      I have restarted <span id="bootcount">.<blink>.</blink>.</span> times since the last software update.
+      <br>
+      I have been running for <span id="uptime">.<blink>.</blink>.</span> since the last restart.
+      <div id="GPSfix" style="display:none">
+        <p>
+          I am located at 
+          &nbsp; <span id="gpslat">.<blink>.</blink>.</span>
+          &nbsp; &nbsp;  <span id="gpslong">.<blink>.</blink>.</span>
+          &nbsp; &nbsp;  <span id="gpsalt"> .<blink>.</blink>.</span> 
+          <button type="button" onclick="socket.emit('gpsfix');">Update GPS fix</button>
+      </div>
+    <p>
+      My clock says it is &nbsp; <span id="sgtime">.<blink>.</blink>. </span>
+
+      <div id="setClock" style="display:none">
+        <b> Set SensorGnome Clock to Your Computer's Clock</b>
+        <br>
+        <br>
+        I don't seem to have a GPS attached, but if my date/time are wrong, I can copy them from your computer: 
+        <br>
+        <br>
+        <button type="button" onclick="socket.emit('setclock', (new Date()).getTime()/1000.0);">Set SensorGnome Clock from This Computer</button>
+        <br>
+      </div>
+
+    <p>
+      <div id="LivePluginData" style="display:none">
+      <hr>
+      <table rows=3 cols=3>
+        <tr>
+          <td>
+            <div id="livedata">
+              <b> Live Pulses</b>
+              <br>
+              <textarea id="datalog" rows=10 cols=65 readonly></textarea>
+            </div>
+          </td>
+          <td>  
+            <div id="livetag" >
+              <b> Live Known Tags </b>
+              <br>
+              <textarea id="taglog" rows=10 cols=65 readonly></textarea>
+            </div>
+          </td>
+          <td>
+            <div id="livepar" >
+              <b> Live Parameter Changes </b>
+              <br>
+              <textarea id="parlog" rows=10 cols=32 readonly></textarea>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button type="button" onclick="$('#datalog').text('')"> Clear Window </button>
+            <input id="datalogAutoscroll" type="checkbox" name="autoscroll" value="yes" checked> Scroll to latest pulses </input>
+          </td>
+          <td>
+            <button type="button" onclick="$('#taglog').text('')"> Clear Window </button>
+            <input id="taglogAutoscroll" type="checkbox" name="autoscroll" value="yes" checked> Scroll to latest tags </input>
+          </td>
+          <td>
+            <button type="button" onclick="$('#parlog').text('')"> Clear </button>
+            <input id="parlogAutoscroll" type="checkbox" name="autoscroll" value="yes" checked> Scroll to latest </input>
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>          
+            <b>Note: </b> only shows tags known to <b>this</b> SensorGnome - see <a href="#tagDB">Tag Database</a> below.
+          </td>
+          <td></td>
+        </tr>
+      </table>
+      <style>
+        th {text-align: center; padding-left: 1em; padding-right: 1em;}
+        td {text-align: center; padding-left: 1em; padding-right: 1em;}
+      </style>
+      </div>
+
+      <div id="VAHstatus" style='display:inline'>
+        <hr>
+        <p>
+          <h3> What I'm doing now:</h3>
+          <div id="VAHstatusTable" style='display:inline'>
+          </div>
+      </div>
+
+      <hr>
+      <div id="devList" style='display:inline'>
+        <p>
+          <b> Devices</b>
+          <br>
+          <ul id="devinfo" style='list-style-type:none'>
+          </ul>
+      </div>
+      
+      <button id="devListRefresh" type="button" onclick="$('#devListRefresh').text('..Getting Device List..');$('#devList').css('display', 'inline');socket.emit('devinfo')"> Show Device List</button>
+      <hr>
+      <br>
+      
+      <div id="dataFiles">
+        <b> Files I have recorded:</b>
+        <br>
+        <p> The following are available via FTP at <br>
+          <b><a href="ftp://bone:bone@192.168.7.2">USB Cable: ftp://bonebone@192.168.7.2</a><br>
+          <b><a href="ftp://bone:bone@192.168.9.2">Ethernet Cable: ftp://bonebone@192.168.9.2</a><br>
+            (right click on the FTP link and open with FireFTP, if using that Firefox extension)<br><br>
+           <b> or </b> via a Windows shared drive at <br>
+          <b>USB Cable: \\192.168.7.2\data</b><br>
+          <b>Ethernet Cable: \\192.168.9.2\data</b><br>:
+          <textarea id="lsDataFiles" rows=20 cols=160 readonly></textarea>
+          <br>
+          <button id="lsDataFilesRefresh" type="button" onclick="$('#lsDataFilesRefresh').text('..refreshing..');lsDataFilesScrollTop=$('#lsDataFiles')[0].scrollTop;socket.emit('lsdata')">Refresh File Listing</button>
+      </div>
+
+      <hr>
+      <div id="plan">
+        <b> Deployment Plan</b>
+        <br>
+        <p> This file shows the current deployment plan, which was read from the file <br> <pre> <span id="planPath">.<blink>.</blink>.</span></pre> <br> You can change this then upload it to the shared drive as:<br>
+          <b>USB Cable:  \\192.168.7.2\data\internal_SD_drive\deployment.txt </b><br>
+          <b>Ethernet Cable:  \\192.168.9.2\data\internal_SD_drive\deployment.txt </b><br>
+          <textarea id="planText" rows=20 cols=160 readonly></textarea>
+          <br>
+      </div>
+
+      <hr>
+      <div id="tagDB">
+        <a name="tagDB"></a>
+        <b> Tag Database</b>
+        <br>
+        <p> This file shows the database of tags known to this SensorGnome. <br>
+          The database is stored as <b><span id="tag-database-name"></span></b> on the shared drive:<br>
+          <b>USB Cable: \\192.168.7.2\boot\</b><br>
+          <b>Ethernet Cable:  \\192.168.9.2\boot\</b> <br>
+          which is on the SENSORGNOME disk of the microSD card. <br>
+          These tags are known to this sensorgnome:<br><br>
+              <span style="font-size:100%;font-family:monospace"><b>&nbsp;&nbsp;&nbsp;ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Freq.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Offset&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project</b></span><br>
+          <textarea id="tagDBText" rows=20 cols=50 readonly></textarea>
+          <br>
+          <button type="button" onclick="socket.emit('getTagDB')">Reload Tag Database Listing</button>
+          <br>
+      </div>
+
+      <div id="softwareupdate">
+        <b> SensorGnome Software Update</b>
+        <br>
+        <form id="updateUploadForm" action="/upload_software_update", method="POST", enctype="multipart/form-data">
+          <p> Please browse to the update file (called <i>sensorgnome_update.tar.bz2</i>):
+            <input type="file" name="update_archive" size=60></input>
+            <br>
+            <br>
+            <input type="submit" value="Upload this software update to your SensorGnome..."></input>
+            <br>
+            <span id="softwareUpdateResults"></span>
+        </form>
+        <br>
+      </div>
+      <div id="rebootSystem">
+        <b> SensorGnome Reboot</b>
+        <br>
+        <br>
+        If you have installed a software update, or if there is a problem with the internet
+        connection, you might wish to try rebooting the SensorGnome.
+        <br>
+        <br>
+        <button type="button" onclick="socket.emit('sgboot'); $('#rebootStatus').html('rebooting...')">Reboot this SensorGnome</button>
+        <div id="rebootStatus"></div>
+      </div>
+  </body>
+</html>
+
+

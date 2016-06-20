@@ -1,0 +1,27 @@
+body {
+  padding: 10px;
+  font: 14px Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#barcodelog {
+    font: 14px bold fixed;
+    color: #000080;
+    background-color: #ffffff;
+}
+
+#pulselog {
+    font: 14px bold fixed;
+    color: #008000;
+    background-color: #ffffff;
+}
+
+#gpsfix {
+    font: 14px fixed bold Courier;
+    color: #800000;
+    margin-left: 3em;
+}
+
