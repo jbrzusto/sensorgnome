@@ -1,0 +1,7 @@
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.1    1
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.2    2
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.3    3
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.4    4
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.5    5
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.6    6
+/devices/ocp.3/47400000.usb/musb-hdrc.1.auto/1-1/1-1.7    7
