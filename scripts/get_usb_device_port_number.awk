@@ -1,5 +1,5 @@
 #!/usr/bin/awk -f
-# 
+#
 # This script translates USB paths into USB HUB port numbers.
 #
 # This script must be called with parameter %p from udev .rules files
@@ -11,7 +11,7 @@
 
 BEGIN {
     devpath = ARGV[1];
-    
+
     port_name_file = "/dev/usb_hub_port_nums.txt";
     port_number = "internal";
     while (0 < getline x < port_name_file) {
@@ -23,4 +23,3 @@ BEGIN {
     }
     printf "PORT_NUM=%d\n", port_number;
 }
-

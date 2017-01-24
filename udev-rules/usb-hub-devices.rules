@@ -10,13 +10,13 @@
 # 
 # Disk drives:
 #   mount under /media/disk.port=X.name=Y
-#   make alias at /dev/bonedongle/disk.port=X.name=Y
+#   make alias at /dev/sensorgnome/disk.port=X.name=Y
 #
 # GPS:
-#   make alias at /dev/bonedongle/gps.port=X
+#   make alias at /dev/sensorgnome/gps.port=X
 #
 # Audio device (e.g. funcube)
-#   make alias at /dev/bonedongle/DDD.port=X.alsaDev=Y.usbPath=Z
+#   make alias at /dev/sensorgnome/DDD.port=X.alsaDev=Y.usbPath=Z
 #   where DDD is one of:
 #    funcubePro
 #    funcubeProPlus
@@ -45,22 +45,22 @@ GOTO="done"
 
 LABEL="GWC_HU2SA0R"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_GWC_HU2SA0R_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_GWC_HU2SA0R_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="DLINK_DUBH7"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_DLINK_DUBH7_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="DLINK_DUBH7_C1"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_C1_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_DLINK_DUBH7_C1_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="STAPLES_BELKIN"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_STAPLES_BELKIN_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_STAPLES_BELKIN_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 ####################  END OF HUB DETECTION #######################
@@ -72,7 +72,7 @@ ACTION!="add", GOTO="not_add_disk"
 # don't try to mount the root device itself
 KERNEL!="sd[a-z][0-9]",GOTO="done"
 IMPORT{program}="/sbin/blkid -o udev -p %N"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
 
 # Disk: import FS info
 ENV{mount_dir}="disk_port%E{PORT_NUM}-%n"
@@ -83,7 +83,7 @@ ENV{mount_options}="defaults,relatime,users"
 ENV{ID_FS_TYPE}=="vfat", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8,flush"
 ENV{ID_FS_TYPE}=="ext4", ENV{mount_options}="%E{mount_options},group,users,suid"
 ENV{ID_FS_TYPE}=="ntfs", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8 -tntfs-3g"
-SYMLINK+="bonedongle/%E{disk_name}"
+SYMLINK+="sensorgnome/%E{disk_name}"
 
 # Mount the device
 MODE:="0666"
@@ -93,7 +93,7 @@ GOTO="done"
 LABEL="not_add_disk"
 # Clean up after removal
 ACTION!="remove",GOTO="done"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
 ENV{mount_dirs}="disk_port%E{PORT_NUM}*"
 ENV{PORT_NUM}!="",RUN+="/bin/sh -c 'for DEV in /media/%E{mount_dirs}; do umount -l $DEV; rmdir $DEV; done'"
 GOTO="done"
@@ -121,9 +121,9 @@ GOTO="done"
 # pl2303gps serial port: add a link indicating which port the device is in
 LABEL="pl2303gps"
 # because the device node hasn't been set up yet, we need to run the 
-IMPORT{program}="/bin/sh -c '(sleep 2; /bin/stty -F /dev/ttyUSB%n 4800; /etc/init.d/chrony restart;sleep 1; /etc/init.d/gpsd restart &);/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/bin/sh -c '(sleep 2; /bin/stty -F /dev/ttyUSB%n 4800; /etc/init.d/chrony restart;sleep 1; /etc/init.d/gpsd restart &);/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
 MODE:="0666"
-ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=0"
+ENV{PORT_NUM}!="",SYMLINK+="sensorgnome/gps.port=%E{PORT_NUM}.pps=0"
 GOTO="done"
 
 # sensorgnome PPSGPS: a US Globalsat MR350P serial GPS interfaced via an FTDI EVAL232R board,
@@ -133,17 +133,17 @@ IMPORT{program}="/sbin/modprobe ftdi_sio product=0x0001 vendor=0xbd09"
 # FIXME: we'd like to use /dev/ttyUSB%n in the following, but %n won't be defined since it is
 # not until after modprobe ftdi_sio that the kernel even knows this is a serial device!
 IMPORT{program}="/bin/stty -F /dev/ttyUSB0 4800"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
 
 MODE:="0666"
-ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=1"
+ENV{PORT_NUM}!="",SYMLINK+="sensorgnome/gps.port=%E{PORT_NUM}.pps=1"
 GOTO="done"
 
 # any usb audio device
 LABEL="usbaudio"
 MODE:="0666"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
-DRIVERS=="usb",KERNEL=="controlC[0-9]",SYMLINK+="bonedongle/%E{MYDEVNAME}.port=%E{PORT_NUM}.alsaDev=%n.usbPath=%s{busnum}:%s{devnum}"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
+DRIVERS=="usb",KERNEL=="controlC[0-9]",SYMLINK+="sensorgnome/%E{MYDEVNAME}.port=%E{PORT_NUM}.alsaDev=%n.usbPath=%s{busnum}:%s{devnum}"
 GOTO="done"
 
 LABEL="done"
