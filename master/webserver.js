@@ -7,6 +7,10 @@
 */
 
 var Express = require('express'),
+Connect = require('connect'),
+Multer  = require('multer'),
+MethodOverride = require('method-override'),
+ErrorHandler = require('errorhandler'),
 Io = require('socket.io'),
 Http = require('http');
 
@@ -19,7 +23,7 @@ function WebServer(matron) {
     this.vahPushTimeout = null;
     this.haveRegisteredListeners = false;
     this.rawStream = null;
-    
+
     // callback closures
 
     this.this_mainPage                      = this.mainPage.bind(this);
@@ -62,15 +66,16 @@ WebServer.prototype.uploadSoftwareUpdate = function (req, res) {
 	Fs.unlinkSync(updateFileDest);
     } catch(e) {
     }
-    Fs.writeFileSync(updateFileDest, Fs.readFileSync(req.files.update_archive.path));
-    Fs.unlinkSync(req.files.update_archive.path);
-    var reply = "Uploaded software update to " + updateFileDest + " (size = " + req.files.update_archive.size + " bytes)<br>Flushing buffers - this may take a while.<br><b>Please <blink>do not disconnect</blink> until I'm finished</b>";
+    console.log(JSON.stringify(req.files));
+    Fs.writeFileSync(updateFileDest, Fs.readFileSync(req.files[0].path));
+    Fs.unlinkSync(req.files[0].path);
+    var reply = "Uploaded software update to " + updateFileDest + " (size = " + req.files[0].size + " bytes)<br>Flushing buffers - this may take a while.<br><b>Please <blink>do not disconnect</blink> until I'm finished</b>";
     res.send(reply);
     ChildProcess.exec("sync", this.this_softwareUpdateUploadCompleted);
 }
 
 WebServer.prototype.softwareUpdateUploadCompleted = function (err, stdout, stderr) {
-    if (this.sock) 
+    if (this.sock)
 	this.sock.emit('softwareUpdateResults', "I finished writing the software update to disk.<br>It will take effect the next time your SensorGnome is rebooted.");
 };
 
@@ -89,7 +94,7 @@ WebServer.prototype.gotDevStatusForRawAudio = function (dev, reqres) {
     res = reqres.res,
     port = req.query.dev;
 
-    if (! dev.type || (dev.type != "AlsaMinder")) {
+    if (! dev.type || (dev.type != "DevMinder")) {
         res.end("No such audio device: " + port);
         return;
     }
@@ -133,7 +138,7 @@ WebServer.prototype.pushDeviceInfo = function (err, stdout, stderr) {
 }
 
 WebServer.prototype.deviceInfoChanged = function () {
-    ChildProcess.exec("/home/bone/proj/sensorgnome/scripts/get_hub_devices.pl", this.this_pushDeviceInfo);
+    ChildProcess.exec("/home/bone/proj/bonedongle/scripts/get_hub_devices.pl", this.this_pushDeviceInfo);
 }
 
 WebServer.prototype.pushLSFiles = function (err, stdout, stderr) {
@@ -199,7 +204,7 @@ WebServer.prototype.pushVAHStatus = function (data) {
 
             // add GPS PPS counter, if it exists
             var interrupts = Fs.readFileSync("/proc/interrupts").toString();
-            var ppsCount = / +([0-9]+) +GPIO +pps-gpio/.exec(interrupts);
+            var ppsCount = / +([0-9]+) .*pps.-1/.exec(interrupts);
             if (ppsCount)
                 data.ppsCount = ppsCount[1] ? ppsCount[1] : 0;
             data.clockSyncDigits = GPS.clockSyncDigits;
@@ -309,6 +314,8 @@ WebServer.prototype.handleWebConnection = function (socket) {
 WebServer.prototype.start = function () {
 
     this.app = Express();
+    this.app.use(Multer({ dest: './uploads/'}).any());
+    //this.app = Connect();
     this.server = Http.createServer(this.app);
     this.io = Io.listen(this.server);
 
@@ -316,28 +323,28 @@ WebServer.prototype.start = function () {
 
     // Configuration
     var self = this;
-    this.app.configure(function(){
-        self.app.set('views', __dirname + '/views');
-        self.app.use(Express.bodyParser());
-        self.app.use(Express.methodOverride());
-        self.app.use(self.app.router);
+//    this.app.configure(function(){
+//        self.app.set('views', __dirname + '/views');
+//        self.app.use(BusBoy);
+        self.app.use(MethodOverride());
+//        self.app.use(self.app.router);
         self.app.use(Express.static(__dirname + '/public'));
-    });
+ //   });
 
-    this.app.configure('development', function(){
-        self.app.use(Express.errorHandler({ dumpExceptions: true, showStack: true }));
-    });
+ //   this.app.configure('development', function(){
+ //    self.app.use(ErrorHandler({ dumpExceptions: true, showStack: true }));
+  //  });
 
-    this.app.configure('production', function(){
-        self.app.use(Express.errorHandler());
-    });
+ //   this.app.configure('production', function(){
+        self.app.use(ErrorHandler());
+  //  });
 
     this.app.set('view options', {layout: false});
 
     var this_io = this.io;
-    this.io.configure(function(){
-        this_io.set('log level', 0);
-        0});
+//    this.io.configure(function(){
+ //       this_io.set('log level', 0);
+  //      0});
 
     // Routes
 

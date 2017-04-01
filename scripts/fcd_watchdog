@@ -1,0 +1,2 @@
+#!/bin/bash
+echo startAll | nc -w 10 -q 1 -U /tmp/VAH.sock

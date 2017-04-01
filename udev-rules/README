@@ -5,13 +5,13 @@ For each type of hub, we need a file called hub_MODELNAME_portnums.txt
 which maps usb device path prefixes to usb port numbers.  When a
 particular USB hub is detected, we symlink /dev/usb_hub_port_nums.txt
 to one of those files.  When other usb devices are detected, udev
-rules are set up to create sensible symlinks in /dev/sensorgnome.
+rules are set up to create sensible symlinks in /dev/bonedongle.
 
 eg.:
 
- /dev/sensorgnome/disk.port=2.name=sdb1
- /dev/sensorgnome/funcube.port=6.alsaDev=0.libusbPath=1:12_in_usb_port_6_is_alsa_dev_0
- /dev/sensorgnome/gps.port=4
+ /dev/bonedongle/disk.port=2.name=sdb1
+ /dev/bonedongle/funcube.port=6.alsaDev=0.libusbPath=1:12_in_usb_port_6_is_alsa_dev_0
+ /dev/bonedongle/gps.port=4
 
 On the beaglebone, an external USB hub generates this udev event upon
 detection: 

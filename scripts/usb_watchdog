@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# if there are no USB devices and we're not explictly prevented
+# from doing so, reboot.  This is to allow USB devices to be
+# re-enumerated and used after a possible failure due to 
+# plugging and unplugging the USB hub.  Or if power levels
+# are insufficient to start attached devices, but gradually
+# improve. In this case, the USB hub does not automatically re-enumerate
+# devices, even though it might now have sufficient power to operate
+# them.  The only solution is to reboot.  This check should not
+# be performed too often.  Perhaps every 15 minutes.
+
+# if explicitly prevented, do not do this
+
+if grep -q NO_USB_WATCHDOG_REBOOT /boot/uboot/deployment.txt; then
+#   echo user specified NO_USB_WATCHDOG_REBOOT
+   exit 0
+fi
+
+# get time up
+read -d ' ' x < /proc/uptime
+
+# remove decimal and fractional portion
+x=${x/.*/}
+
+# if we haven't been up for more than 5 minutes, giving the system
+# time to enumerate all USB devices, do not reboot
+if (( $x < 300 )); then
+#   echo not up long enough yet
+   exit 0
+fi
+
+# if any funcube or usbaudio device is found in /dev/bonedongle
+# then we're presumably okay. NB: this will need to change once
+# other sensors are being used, and cannot detect the problem of
+# individual devices having not been enumerated.  Only a total
+# lack of USB devices will trigger a reboot.
+
+if ( ls -1 /dev/bonedongle | grep -q -P -i "(funcube|usbaudio)" ); then
+#   echo 'USB device(s) found'
+   exit 0
+fi
+
+#echo rebooting
+reboot

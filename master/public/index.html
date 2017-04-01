@@ -126,13 +126,7 @@
       <div id="dataFiles">
         <b> Files I have recorded:</b>
         <br>
-        <p> The following are available via FTP at <br>
-          <b><a href="ftp://bone:bone@192.168.7.2">USB Cable: ftp://bonebone@192.168.7.2</a><br>
-          <b><a href="ftp://bone:bone@192.168.9.2">Ethernet Cable: ftp://bonebone@192.168.9.2</a><br>
-            (right click on the FTP link and open with FireFTP, if using that Firefox extension)<br><br>
-           <b> or </b> via a Windows shared drive at <br>
-          <b>USB Cable: \\192.168.7.2\data</b><br>
-          <b>Ethernet Cable: \\192.168.9.2\data</b><br>:
+        <p> The following are available via a Windows shared drive at <b>\\192.168.7.2\data</b> : 
           <textarea id="lsDataFiles" rows=20 cols=160 readonly></textarea>
           <br>
           <button id="lsDataFilesRefresh" type="button" onclick="$('#lsDataFilesRefresh').text('..refreshing..');lsDataFilesScrollTop=$('#lsDataFiles')[0].scrollTop;socket.emit('lsdata')">Refresh File Listing</button>
@@ -142,9 +136,7 @@
       <div id="plan">
         <b> Deployment Plan</b>
         <br>
-        <p> This file shows the current deployment plan, which was read from the file <br> <pre> <span id="planPath">.<blink>.</blink>.</span></pre> <br> You can change this then upload it to the shared drive as:<br>
-          <b>USB Cable:  \\192.168.7.2\data\internal_SD_drive\deployment.txt </b><br>
-          <b>Ethernet Cable:  \\192.168.9.2\data\internal_SD_drive\deployment.txt </b><br>
+        <p> This file shows the current deployment plan, which was read from the file <br> <pre> <span id="planPath">.<blink>.</blink>.</span></pre> <br> You can change this then upload it to the shared drive as <b> \\192.168.7.2\data\internal_SD_drive\deployment.txt </b>
           <textarea id="planText" rows=20 cols=160 readonly></textarea>
           <br>
       </div>
@@ -154,11 +146,7 @@
         <a name="tagDB"></a>
         <b> Tag Database</b>
         <br>
-        <p> This file shows the database of tags known to this SensorGnome. <br>
-          The database is stored as <b><span id="tag-database-name"></span></b> on the shared drive:<br>
-          <b>USB Cable: \\192.168.7.2\boot\</b><br>
-          <b>Ethernet Cable:  \\192.168.9.2\boot\</b> <br>
-          which is on the SENSORGNOME disk of the microSD card. <br>
+        <p> This file shows the database of tags known to this SensorGnome. <br> The database is stored on the shared drive as <br> <b> \\192.168.7.2\boot\<span id="tag-database-name"></span>  </b> <br> which is on the SENSORGNOME disk of the microSD card. <br>
           These tags are known to this sensorgnome:<br><br>
               <span style="font-size:100%;font-family:monospace"><b>&nbsp;&nbsp;&nbsp;ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Freq.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Offset&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BI&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Project</b></span><br>
           <textarea id="tagDBText" rows=20 cols=50 readonly></textarea>

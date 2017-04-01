@@ -1,5 +1,5 @@
 /*
-  
+
   sensorgnome.js - client-side code for the SensorGnome.js web interface
 
 */
@@ -7,7 +7,7 @@
 var load1 = function() {
     loadScript("/socket.io/socket.io.js", load2);
 };
-var load2 = function() {  
+var load2 = function() {
     loadScript("/javascripts/jquery.js", load3);
 };
 var load3 = function() {
@@ -41,7 +41,7 @@ function setFreq(n) {
     if (socket) {
         var freq = parseFloat($('#set_freq_button' + n)[0].value);
         socket.emit("clientSetParam", {port:n, par:"-m", val:freq});
-    }      
+    }
 };
 
 var socket;
@@ -60,7 +60,7 @@ var sensorgnomeInit = function() {
 
         socket.on('machineinfo', function(data) {
             $("#bootcount").text(0 + parseInt(data.machine.bootCount));
-            $("#machine_id").text(data.machine.machineID + ", MAC address is " + data.machine.macAddr + " and bandgap temperature is " + data.bandgapTemp + " °C");
+            $("#machine_id").text(data.machine.machineID);
             $("#version").text(data.machine.version);
             var uptimes = data.uptime.split(/ +/);
             var upsecs = uptimes[0] + 0;
@@ -146,13 +146,13 @@ var sensorgnomeInit = function() {
             else
                 elt[0].scrollTop = top;
         });
-      
+
         socket.on('gpsfix', function (data) {
             if(data.lat) $('#gpslat').text(Math.round(10000*Math.abs(data.lat)) / 10000 + "° " + (["N", "S"][0 + (data.lat < 0)]));
             if(data.lon) $('#gpslong').text(Math.round(10000*Math.abs(data.lon)) / 10000 + "° " + (["E", "W"][0 + (data.lon < 0)]));
             if(data.alt) $('#gpsalt').text(Math.round(data.alt) + " m elev.");
         });
-        
+
         socket.on('devinfo', function (data) {
             devList = JSON.parse(data);
             $('#devinfo').empty();
@@ -166,31 +166,36 @@ var sensorgnomeInit = function() {
             for (var slot = -1; slot <= 10; ++slot) {
                 if (! devList[slot])
                     continue;
+                var d = devList[slot];
                 var txt;
-                switch (devList[slot].type) {
+                switch (d.type) {
                 case "disk":
-                    var part = devList[slot]["partitions"];
+                    var part = d["partitions"];
                     if (part.length == 1) {
                         txt = "Disk: \"" + part[0]["name"] + "\":  Size = " + (part[0]["size"] * 1024 / 1e9).toFixed() + "GB Used = " + part[0]["used_percent"];
-                    } else {           
+                    } else {
                         txt = "Disk with partitions: ";
-                        for (var dev in part) 
+                        for (var dev in part)
                             txt += "\"" + part[dev]["name"] + "\":  Size = " + (part[dev]["size"] * 1024 / 1e9).toFixed(3) + " Used = " + part[dev]["used_percent"]+ ";   ";
                     }
                     break;
-                case "fcd":
-                    txt = devList[slot]["name"] + ' tuned to <a id="fcd_freq' + slot + '\">' + devList[slot]["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
+                case "rtlsdr":
+                    txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + '<span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
                     txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
-                    devList[slot].realFreq = parseFloat(devList[slot].frequency);
+                    break;
+                case "fcd":
+                    txt = d["name"] + ' tuned to <a id="fcd_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
+                    txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
+                    d.realFreq = parseFloat(d.frequency);
                     break;
                 case "gps":
-                    txt = devList[slot]["name"];
-                    GPS = devList[slot];
+                    txt = d["name"];
+                    GPS = d;
                     gotGPS = true;
                     break;
 
                 case "usbAudio":
-                    txt = "USB audio device: " + devList[slot]["name"];
+                    txt = "USB audio device: " + d["name"];
                     txt += '<span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
                     break;
                 default:
@@ -206,36 +211,36 @@ var sensorgnomeInit = function() {
                 $("#GPSfix").show();
 
         });
-        
+
         function updateUploadStatus(message) {
             $('#softwareUpdateResults').html(message);
         };
-        
+
         $('#updateUploadForm').submit(function() {
             updateUploadStatus('<blink>Uploading the file ... </blink>');
-            
+
             $(this).ajaxSubmit({
-                
+
                 error: function(xhr) {
                     updateUploadStatus('<b>Error: ' + xhr.status + '</b>');
                 },
-                
+
                 success: function(response) {
                     updateUploadStatus(response.toString());
                 }
             });
-            
+
             // Have to stop the form from submitting and causing
             // a page refresh - don't forget this
             return false;
         });
-        
+
         socket.on('lsdata', function(data) {
             $('#lsDataFiles').text(data.toString());
             $('#lsDataFilesRefresh').text('Refresh File Listing');
             $('#lsDataFiles').scrollTop = lsDataFilesScrollTop;
         });
-        
+
         socket.on('vahstatus', function(status) {
             var date = status.date;
             var timeTxt = (new Date(date * 1000)).toISOString().replace("T", "    ").replace("Z", " UTC");
@@ -265,7 +270,7 @@ var sensorgnomeInit = function() {
             }
             for (n in status) {
                 var fcd = status[n];
-                if (fcd.type != "AlsaMinder")
+                if (fcd.type != "DevMinder")
                     continue;
                 for (p in fcd.plugins) {
                     var prate, frate, tprate;
@@ -276,7 +281,7 @@ var sensorgnomeInit = function() {
                         frate = (fcd.totalFrames - oldfcd.totalFrames) / (date - VAHstatus.date);
                         prate = (fcd.plugins[p] - oldfcd.plugins[p]) / (fcd.totalFrames - oldfcd.totalFrames) * fcd.hwRate;
                     } else {
-                        frate = fcd.totalFrames / (date - fcd.startTimestamp);   
+                        frate = fcd.totalFrames / (date - fcd.startTimestamp);
                         prate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
                     }
                     tprate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
@@ -295,8 +300,8 @@ var sensorgnomeInit = function() {
                                                  raw.rate * raw.prevSecondsWritten / (raw.currFileTimestamp - raw.prevFileTimestamp)
                                                  : raw.framesWritten / raw.secondsWritten
                                                 )) / 10;
-                if (frameRate == Infinity) 
-                    // protect against seeing fileWriter before 
+                if (frameRate == Infinity)
+                    // protect against seeing fileWriter before
                     frameRate = rate;
                 wfw += "<b>Audio device in port " + raw.port + "</b> (" + (devList ? devList[raw.port]["name"] : "") + ")<br><ul>";
                 var hmsLeft = new Date((raw.secondsToWrite - raw.secondsWritten)*1000).toTimeString().substring(0, 8);
@@ -313,7 +318,7 @@ var sensorgnomeInit = function() {
             VAHstatus = status;
             $('#VAHstatusTable').html(txt);
         });
-        
+
         socket.on('sgbooted', function(okay) {
             if (okay) {
                 window.scrollTo(0, 0);
@@ -333,13 +338,13 @@ var sensorgnomeInit = function() {
                 $("#rebootStatus").html('<br><br><i><b>Reboot Failed!</b></i>  Try again in a few seconds.');
             }
         });
-        
-        
+
+
         socket.on('plan', function(data) {
             $('#planPath').text(data.planPath);
             $('#planText').text(data.planText);
         });
-        
+
         socket.on('tagDB', function(resp) {
             $('#tag-database-name').text(resp.file);
             if (resp.err) {
@@ -370,12 +375,12 @@ var sensorgnomeInit = function() {
             }
             $('#tagDBText').text(table);
         });
-        
+
         socket.on('softwareUpdateResults', function(data) {
             updateUploadStatus(data.toString());
         });
     });
-    
+
     socket.on('softwareUpdateResults', function(data) {
         $('#softwareUpdateResults').text(data.toString());
     });

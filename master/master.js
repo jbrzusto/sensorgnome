@@ -51,7 +51,7 @@ TheMatron.tagDBFile = Fs.existsSync("/boot/uboot/SG_tag_database.sqlite") ?
 
 // Load singleton objects
 GPS           = new (require('./gps.js').GPS)       (TheMatron);
-HubMan        = new (require('./hubman.js').HubMan) (TheMatron, "/dev/sensorgnome");
+HubMan        = new (require('./hubman.js').HubMan) (TheMatron, "/dev/bonedongle");
 VAH           = new (require('./vah.js').VAH)       (TheMatron, "/usr/bin/vamp-alsa-host", "VAH.sock");
 WebServer     = new (require('./webserver.js')).WebServer(TheMatron);
 
@@ -63,7 +63,7 @@ Deployment = new (require("./deployment.js").Deployment) (
  [
      "/boot/uboot/deployment.txt",
      "/media/internal_SD_card/deployment.txt",
-     "/home/bone/proj/sensorgnome/plans/deployment.txt"
+     "/home/bone/proj/bonedongle/plans/deployment.txt"
  ]);
 
 // replace "-" with "_" in deployment short label, so filenames
@@ -72,7 +72,7 @@ Deployment = new (require("./deployment.js").Deployment) (
 Deployment.shortLabel = Deployment.shortLabel.replace(/-/g,"_");
 
 TagFinder     = new (require('./tagfinder.js').TagFinder) (TheMatron, 
-                                                           "/home/bone/proj/sensorgnome/find_tags/find_tags_unifile", 
+                                                           "/home/bone/proj/bonedongle/find_tags/find_tags_unifile", 
                                                            TheMatron.tagDBFile,
                                                            Deployment.module_options.find_tags.params
                                                           );

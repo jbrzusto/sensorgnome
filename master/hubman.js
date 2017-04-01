@@ -17,7 +17,7 @@
   This hub manager ignores any devices without the "port=X" attribute.
   
   Note that these device names are symlinks in special directory
-  created by udev rules; e.g. /dev/sensorgnome.  That directory is
+  created by udev rules; e.g. /dev/bonedongle.  That directory is
   meant to include only devices which we recognize and make visible to
   end users.
 
@@ -107,7 +107,7 @@ HubMan = function(matron, root) {
             // for every device.
             enumeratePreExistingDevices();
         } catch (e) {
-            // presumably we failed because /dev/sensorgnome doesn't
+            // presumably we failed because /dev/bonedongle doesn't
             // exist; wait 10 seconds for user to plug in a hub and
             // try again.
             setTimeout(this.this_start, 10000);

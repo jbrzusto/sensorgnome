@@ -1,0 +1,108 @@
+{
+    "info": "default deployment",
+    "who": "who is responsible for this deployment",
+    "contact": "contact information for responsible party",
+    "shortLabel": "SG1",
+    "acquire": {
+        "gps": {
+            "secondsBetweenFixes": 300
+        },
+        "USB": {
+            "portInfo": [
+                "info for USB hub port 1",
+                "info for USB hub port 2",
+                "info for USB hub port 3",
+                "info for USB hub port 4",
+                "info for USB hub port 5",
+                "info for USB hub port 6",
+                "info for USB hub port 7",
+                "info for USB hub port 8",
+                "info for USB hub port 9",
+                "info for USB hub port 10"
+            ],
+            "portLabel": [
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+                "p8",
+                "p9",
+                "p10"
+            ]
+        },
+        "plans": [
+            {
+                "key": {
+                    "port": ".*",
+                    "devType": "funcube.*"
+                },
+                "rate": 48000,
+                "channels": 2,
+                "schedule": {
+                    "type": "AlwaysOn"
+                },
+                "devParams": [
+                    {
+                        "name": "frequency",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 166.376
+                        }
+                    }
+                ],
+                "raw": {
+                    "enabled": false,
+                    "chunkMinutes": 1
+                },
+                "plugins": [
+                    {
+                        "library": "lotek-plugins.so",
+                        "name": "findpulsefdbatch",
+                        "outputID": "pulses",
+                        "params": [
+                            {
+                                "name": "plen",
+                                "value": 2.5
+                            },
+                            {
+                                "name": "minfreq",
+                                "value": 2
+                            },
+                            {
+                                "name": "maxfreq",
+                                "value": 24
+                            }
+                        ]                           
+                    }
+                ]
+            },
+            {
+                "key": {
+                    "port": ".*",
+                    "devType": "usbAudio"
+                },
+                "rate": 48000,
+                "channels": 1,
+                "schedule": {
+                    "type": "AlwaysOn"
+                },
+                "raw": {
+                    "enabled": true,
+                    "chunkMinutes": 60
+                }
+            }
+        ]
+    },
+    "module_options": {
+        "find_tags": {
+            "params": [
+                "--default-freq", 166.380,
+                "--pulse-slop", 1.5
+            ],
+            "enabled": true
+        }
+    }
+}

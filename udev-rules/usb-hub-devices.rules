@@ -1,3 +1,20 @@
+# Copyright 2012-2017 john brzustowski (sensorgnome.org)
+# Portions Copyright 2012-2013 Osmocom rtl-sdr project
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
 # Detect devices attached to the USB hub or directly to the beaglebone.
 # We need to know which USB port each device is in, so we can
 # label data streams appropriately.
@@ -5,27 +22,30 @@
 #
 # USB Hub:
 #   create symlink in /dev/usb_hub_port_nums.txt to a file giving the map
-#   between usb device path and port number.  Only works for hubs we've 
+#   between usb device path and port number.  Only works for hubs we've
 #   created these files for.
-# 
+#
 # Disk drives:
 #   mount under /media/disk.port=X.name=Y
-#   make alias at /dev/sensorgnome/disk.port=X.name=Y
+#   make alias at /dev/bonedongle/disk.port=X.name=Y
 #
 # GPS:
-#   make alias at /dev/sensorgnome/gps.port=X
+#   make alias at /dev/bonedongle/gps.port=X
 #
 # Audio device (e.g. funcube)
-#   make alias at /dev/sensorgnome/DDD.port=X.alsaDev=Y.usbPath=Z
+#   make alias at /dev/bonedongle/DDD.port=X.alsaDev=Y.usbPath=Z
 #   where DDD is one of:
 #    funcubePro
 #    funcubeProPlus
 #    usbAudio
-#   
+#
+# RTLSDR dvb dongle
+#   make alias at /dev/bonedongle/rtlsdr.port=X.usbPath=Z
+#
 # Heavily modified from Arch linux file media-by-label-auto-mount.rules
 
 # uncomment the following block for debug info
-ACTION=="add",IMPORT{program}="/bin/sh -c 'echo Add %p %k >> /tmp/rules.txt'",GOTO="main"
+ACTION=="add",IMPORT{program}="/bin/sh -c 'echo Add %p %k $driver %M %m %s{busnum} %s{devnum} >> /tmp/rules.txt'",GOTO="main"
 ACTION=="remove",IMPORT{program}="/bin/sh -c 'echo Remove %p %k >> /tmp/rules.txt'",GOTO="main"
 ACTION=="change",IMPORT{program}="/bin/sh -c 'echo Change %p %k >> /tmp/rules.txt'",GOTO="main"
 IMPORT{program}="/bin/sh -c 'echo Unknown %p %k >> /tmp/rules.txt'"
@@ -39,28 +59,34 @@ ACTION=="add",ATTR{idVendor}=="1a40",ATTR{idProduct}=="0201",GOTO="GWC_HU2SA0R"
 ACTION=="add",ATTR{idVendor}=="05e3",ATTR{idProduct}=="0610",GOTO="DLINK_DUBH7"
 ACTION=="add",ATTR{idVendor}=="0835",ATTR{idProduct}=="8500",GOTO="DLINK_DUBH7_C1"
 ACTION=="add",ATTR{idVendor}=="050d",ATTR{idProduct}=="0416",GOTO="STAPLES_BELKIN"
+ACTION=="add",ATTR{idVendor}=="0424",ATTR{idProduct}=="9514",GOTO="RASPBERRY_PI2"
 ACTION!="remove",GOTO="done"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="GWC_HU2SA0R"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_GWC_HU2SA0R_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_GWC_HU2SA0R_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="DLINK_DUBH7"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_DLINK_DUBH7_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="DLINK_DUBH7_C1"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_DLINK_DUBH7_C1_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_C1_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 LABEL="STAPLES_BELKIN"
 IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
-IMPORT{program}="/bin/ln -s /home/bone/proj/sensorgnome/udev-rules/hub_STAPLES_BELKIN_portnums.txt /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_STAPLES_BELKIN_portnums.txt /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+LABEL="RASPBERRY_PI2"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_RASPBERRYPI2_portnums.txt /dev/usb_hub_port_nums.txt"
 GOTO="done"
 
 ####################  END OF HUB DETECTION #######################
@@ -72,7 +98,7 @@ ACTION!="add", GOTO="not_add_disk"
 # don't try to mount the root device itself
 KERNEL!="sd[a-z][0-9]",GOTO="done"
 IMPORT{program}="/sbin/blkid -o udev -p %N"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
 
 # Disk: import FS info
 ENV{mount_dir}="disk_port%E{PORT_NUM}-%n"
@@ -83,7 +109,7 @@ ENV{mount_options}="defaults,relatime,users"
 ENV{ID_FS_TYPE}=="vfat", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8,flush"
 ENV{ID_FS_TYPE}=="ext4", ENV{mount_options}="%E{mount_options},group,users,suid"
 ENV{ID_FS_TYPE}=="ntfs", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8 -tntfs-3g"
-SYMLINK+="sensorgnome/%E{disk_name}"
+SYMLINK+="bonedongle/%E{disk_name}"
 
 # Mount the device
 MODE:="0666"
@@ -93,7 +119,7 @@ GOTO="done"
 LABEL="not_add_disk"
 # Clean up after removal
 ACTION!="remove",GOTO="done"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
 ENV{mount_dirs}="disk_port%E{PORT_NUM}*"
 ENV{PORT_NUM}!="",RUN+="/bin/sh -c 'for DEV in /media/%E{mount_dirs}; do umount -l $DEV; rmdir $DEV; done'"
 GOTO="done"
@@ -115,15 +141,15 @@ ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="bd09",ATTRS{idProduct}=="0001"
 ## any other sound device is assumed to be USB audio
 ACTION=="add",SUBSYSTEMS=="sound",ENV{MYDEVNAME}="usbAudio",GOTO="usbaudio"
 
-## otherwise, we ignore this event
-GOTO="done"
+## otherwise, see whether it's an rtlsdr dongle
+GOTO="rtlsdr"
 
 # pl2303gps serial port: add a link indicating which port the device is in
 LABEL="pl2303gps"
-# because the device node hasn't been set up yet, we need to run the 
-IMPORT{program}="/bin/sh -c '(sleep 2; /bin/stty -F /dev/ttyUSB%n 4800; /etc/init.d/chrony restart;sleep 1; /etc/init.d/gpsd restart &);/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
+# because the device node hasn't been set up yet, we need to run the
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
 MODE:="0666"
-ENV{PORT_NUM}!="",SYMLINK+="sensorgnome/gps.port=%E{PORT_NUM}.pps=0"
+ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=0"
 GOTO="done"
 
 # sensorgnome PPSGPS: a US Globalsat MR350P serial GPS interfaced via an FTDI EVAL232R board,
@@ -133,18 +159,158 @@ IMPORT{program}="/sbin/modprobe ftdi_sio product=0x0001 vendor=0xbd09"
 # FIXME: we'd like to use /dev/ttyUSB%n in the following, but %n won't be defined since it is
 # not until after modprobe ftdi_sio that the kernel even knows this is a serial device!
 IMPORT{program}="/bin/stty -F /dev/ttyUSB0 4800"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
 
 MODE:="0666"
-ENV{PORT_NUM}!="",SYMLINK+="sensorgnome/gps.port=%E{PORT_NUM}.pps=1"
+ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=1"
 GOTO="done"
 
 # any usb audio device
 LABEL="usbaudio"
 MODE:="0666"
-IMPORT{program}="/usr/bin/awk -f /home/bone/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
-DRIVERS=="usb",KERNEL=="controlC[0-9]",SYMLINK+="sensorgnome/%E{MYDEVNAME}.port=%E{PORT_NUM}.alsaDev=%n.usbPath=%s{busnum}:%s{devnum}"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+DRIVERS=="usb",KERNEL=="controlC[0-9]",SYMLINK+="bonedongle/%E{MYDEVNAME}.port=%E{PORT_NUM}.alsaDev=%n.usbPath=%s{busnum}:%s{devnum}"
+GOTO="done"
+
+LABEL="rtlsdr"
+
+################# START RTLSDR DETECTION #################
+# original RTL2832U vid/pid (hama nano, for example)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832",GOTO="rtlsdr2"
+
+# RTL2832U OEM vid/pid, e.g. ezcap EzTV668 (E4000), Newsky TV28T (E4000/R820T) etc
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",GOTO="rtlsdr2"
+
+# DigitalNow Quad DVB-T PCI-E card (4x FC0012?)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6680",GOTO="rtlsdr2"
+
+# Leadtek WinFast DTV Dongle mini D (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6f0f",GOTO="rtlsdr2"
+
+# Genius TVGo DVB-T03 USB dongle (Ver. B)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0458", ATTRS{idProduct}=="707f",GOTO="rtlsdr2"
+
+# Terratec Cinergy T Stick Black (rev 1) (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00a9",GOTO="rtlsdr2"
+
+# Terratec NOXON rev 1 (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b3",GOTO="rtlsdr2"
+
+# Terratec Deutschlandradio DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b4",GOTO="rtlsdr2"
+
+# Terratec NOXON DAB Stick - Radio Energy (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b5",GOTO="rtlsdr2"
+
+# Terratec Media Broadcast DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b7",GOTO="rtlsdr2"
+
+# Terratec BR DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b8",GOTO="rtlsdr2"
+
+# Terratec WDR DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b9",GOTO="rtlsdr2"
+
+# Terratec MuellerVerlag DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c0",GOTO="rtlsdr2"
+
+# Terratec Fraunhofer DAB Stick (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c6",GOTO="rtlsdr2"
+
+# Terratec Cinergy T Stick RC (Rev.3) (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d3",GOTO="rtlsdr2"
+
+# Terratec T Stick PLUS (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d7",GOTO="rtlsdr2"
+
+# Terratec NOXON rev 2 (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00e0",GOTO="rtlsdr2"
+
+# PixelView PV-DT235U(RN) (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1554", ATTRS{idProduct}=="5020",GOTO="rtlsdr2"
+
+# Astrometa DVB-T/DVB-T2 (R828D)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0131",GOTO="rtlsdr2"
+
+# HanfTek DAB+FM+DVB-T
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0133",GOTO="rtlsdr2"
+
+# Compro Videomate U620F (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0620",GOTO="rtlsdr2"
+
+# Compro Videomate U650F (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0650",GOTO="rtlsdr2"
+
+# Compro Videomate U680F (E4000)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0680",GOTO="rtlsdr2"
+
+# GIGABYTE GT-U7300 (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d393",GOTO="rtlsdr2"
+
+# DIKOM USB-DVBT HD
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d394",GOTO="rtlsdr2"
+
+# Peak 102569AGPK (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d395",GOTO="rtlsdr2"
+
+# KWorld KW-UB450-T USB DVB-T Pico TV (TUA9001)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d397",GOTO="rtlsdr2"
+
+# Zaapa ZT-MINDVBZP (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d398",GOTO="rtlsdr2"
+
+# SVEON STV20 DVB-T USB & FM (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d39d",GOTO="rtlsdr2"
+
+# Twintech UT-40 (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a4",GOTO="rtlsdr2"
+
+# ASUS U3100MINI_PLUS_V2 (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a8",GOTO="rtlsdr2"
+
+# SVEON STV27 DVB-T USB & FM (FC0013)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3af",GOTO="rtlsdr2"
+
+# SVEON STV21 DVB-T USB & FM
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3b0",GOTO="rtlsdr2"
+
+# Dexatek DK DVB-T Dongle (Logilink VG0002A) (FC2580)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1101",GOTO="rtlsdr2"
+
+# Dexatek DK DVB-T Dongle (MSI DigiVox mini II V3.0)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1102",GOTO="rtlsdr2"
+
+# Dexatek DK 5217 DVB-T Dongle (FC2580)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1103",GOTO="rtlsdr2"
+
+# MSI DigiVox Micro HD (FC2580)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1104",GOTO="rtlsdr2"
+
+# Sweex DVB-T USB (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="a803",GOTO="rtlsdr2"
+
+# GTek T803 (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="b803",GOTO="rtlsdr2"
+
+# Lifeview LV5TDeluxe (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="c803",GOTO="rtlsdr2"
+
+# MyGica TD312 (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d286",GOTO="rtlsdr2"
+
+# PROlectrix DV107669 (FC0012)
+ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d803",GOTO="rtlsdr2"
+
+
+GOTO="done"
+
+LABEL="rtlsdr2"
+MODE:="0666"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+ENV{major}="%M"
+ENV{major}=="212",SYMLINK+="bonedongle/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}"
 GOTO="done"
 
 LABEL="done"
+
 # Exit

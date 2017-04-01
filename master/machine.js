@@ -13,7 +13,6 @@
 */
 
 var machineID = Fs.readFileSync("/etc/beaglebone_id").toString().substring(0, 12);
-var macAddr = Fs.readFileSync("/sys/class/net/eth0/address").toString();
 var bootCountFile = "/etc/bootcount"
 var bootCount = "" + (Fs.existsSync(bootCountFile) ?
                       Number(Fs.readFileSync(bootCountFile).toString()) % (1000000)
@@ -30,7 +29,6 @@ else
     version = "UNKNOWN";
 
 exports.machineID = machineID;
-exports.macAddr = macAddr;
 exports.bootCount = bootCount;
 exports.version = version;
 
