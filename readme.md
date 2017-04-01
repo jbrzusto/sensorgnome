@@ -36,4 +36,16 @@ ln -s /home/bone/proj/sensorgnome/udev-rules/usb-hub-devices.rules /etc/udev/rul
 ## TODO:
 
 - support GPS cape
+  echo BB-UART4 > /sys/devices/platform/bone_capemgr/slots
+  stty -F /dev/ttyS4 raw 9600 min 0 time 50
+  cat /dev/ttyS4
+#but still need PPS integration into kernel?
+
+  apt-get install gpsd gpsd-util  ## gpsd-util brings in many libs;  I just want gpsmon!
+  sed -i -e 's/USBAUTO="true"/USBAUTO="false"/;s/DEVICES=""/DEVICES="\/dev\/ttyS4"/' /etc/default/gpsd
+
 - build vamp-alsa-host, lotek-plugins.so, fcd
+
+# turn off DNS lookup for sshd
+echo UseDNS no >> /etc/ssh/sshd_config
+systemctl restart sshd.service
