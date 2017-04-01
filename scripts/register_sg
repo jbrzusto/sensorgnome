@@ -9,12 +9,12 @@
 import os
 import subprocess
 
-UNIQUE_KEY_FILE = "/home/bone/.ssh/id_dsa"
+UNIQUE_KEY_FILE = "/home/pi/.ssh/id_dsa"
 UNIQUE_KEY_FILE_PUB = UNIQUE_KEY_FILE + ".pub"
-FACTORY_KEY_FILE = "/home/bone/.ssh/id_dsa_factory"
+FACTORY_KEY_FILE = "/home/pi/.ssh/id_dsa_factory"
 MACHINE_ID_FILE = "/etc/beaglebone_id"
-TUNNEL_PORT_FILE = "/home/bone/.ssh/tunnel_port"
-AUTHORIZED_KEYS_FILE = "/home/bone/.ssh/authorized_keys"
+TUNNEL_PORT_FILE = "/home/pi/.ssh/tunnel_port"
+AUTHORIZED_KEYS_FILE = "/home/pi/.ssh/authorized_keys"
 REGISTRATION_CHECK_CRONTAB_FILE = "/etc/cron.d/register_sg"
 
 SG_USER_ID = 1000

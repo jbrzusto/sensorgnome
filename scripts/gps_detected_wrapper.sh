@@ -6,4 +6,4 @@
 # before doing the real work, so that all device-related symlinks
 # have been established.
 
-/home/bone/proj/bonedongle/scripts/gps_detected.sh &
+/home/pi/proj/sensorgnome/scripts/gps_detected.sh &

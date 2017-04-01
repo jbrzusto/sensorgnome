@@ -18,7 +18,7 @@ function Uploader(matron) {
         "-o", "ControlPath=/tmp/sgremote", 
         "-o", "ServerAliveInterval=5",     // make sure the server is alive
         "-o", "ServerAliveCountMax=3",
-        "-i", "/home/bone/.ssh/id_dsa",    // use our unique key, not the factory key
+        "-i", "/home/pi/.ssh/id_dsa",    // use our unique key, not the factory key
         "-p", "59022",                     // the sensorgnome.org special ssh server listens on port 59022
         "sg_remote@sensorgnome.org",       // who@where
         "/home/sg_remote/code/sg_remote"   // probably overridden by the ssh server, but specified here in case not

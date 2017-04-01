@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# look for a file called bonedongle_update.tgz on the boot partition.
+# look for a file called sensorgnome_update.tgz on the boot partition.
 # If found, copy it to /tmp, remove it from the boot partition,
 # then extract it to the root partition.  This allows for arbitray files
 # to be upgraded.
@@ -32,7 +32,7 @@ if [[ -d "$NEWDEBS_DIR" ]]; then
 fi;
 
 echo Software Update Successful.
-echo You may want to restart the master process, or reboot the bonedongle.
+echo You may want to restart the master process, or reboot the sensorgnome.
 
 exit 0
 

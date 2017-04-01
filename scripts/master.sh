@@ -8,13 +8,13 @@
 # the deployment.txt file
 
 if ! grep -q NO_AUTO_FCD_UPDATE /boot/uboot/deployment.txt; then
-    /home/bone/proj/bonedongle/scripts/update_fcd_firmware
+    /home/pi/proj/sensorgnome/scripts/update_fcd_firmware
 fi
 
-/home/bone/proj/bonedongle/scripts/maintain_ssh_tunnel 
+/home/pi/proj/sensorgnome/scripts/maintain_ssh_tunnel 
 
-cd /home/bone/proj/bonedongle/master
-export NODE_ENV=production VAMP_PATH=/home/bone/vamp NODE_PATH=/usr/local/lib/node_modules
+cd /home/pi/proj/sensorgnome/master
+export NODE_ENV=production VAMP_PATH=/home/pi/vamp NODE_PATH=/usr/local/lib/node_modules
 for (( ; ; )) do
 nice -n -15 /usr/bin/node ./master.js > /var/log/nodelog.txt 2>&1
 sleep 60

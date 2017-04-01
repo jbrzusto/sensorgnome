@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/bone/proj/bonedongle/scripts
+cd /home/pi/proj/sensorgnome/scripts
 
 if [[ "$1" != "" ]]; then
     TARGET_BOOT_DEV=$1
@@ -80,7 +80,7 @@ fi
 
 rsync -acv --exclude "SENSORGNOME_VERSION.TXT" $SOURCE_BOOT_DIR/ $TARGET_BOOT_DIR/
 
-rsync -acv --exclude "/etc/bootcount" --exclude "/home/bone/.ssh/id_dsa.pub" --exclude "/home/bone/.ssh/id_dsa" --exclude "/home/bone/.ssh/authorized_keys" --exclude "/home/bone/.ssh/tunnel_port" --delete --exclude "/media/**" --exclude "/var/log/**" --exclude "/tmp/**" --exclude "/proc/**" --exclude "/sys/**" --exclude "/run/**" --exclude "/dev/pts/**" --exclude "$SOURCE_BOOT_DIR/**" / $TARGET_ROOT_DIR/
+rsync -acv --exclude "/etc/bootcount" --exclude "/home/pi/.ssh/id_dsa.pub" --exclude "/home/pi/.ssh/id_dsa" --exclude "/home/pi/.ssh/authorized_keys" --exclude "/home/pi/.ssh/tunnel_port" --delete --exclude "/media/**" --exclude "/var/log/**" --exclude "/tmp/**" --exclude "/proc/**" --exclude "/sys/**" --exclude "/run/**" --exclude "/dev/pts/**" --exclude "$SOURCE_BOOT_DIR/**" / $TARGET_ROOT_DIR/
 
 mkdir $TARGET_ROOT_DIR/media/internal_SD_card
 

@@ -95,9 +95,9 @@ cat $GPS | (
         ## kludge: create a symlink to the GPS serial port from
         ## the location expected by gpsd
         ln -f -s $GPS /dev/ttyUSB0
-        mkdir /dev/bonedongle
-        ## add a link in /dev/bonedongle so the web interface can indicate
+        mkdir /dev/sensorgnome
+        ## add a link in /dev/sensorgnome so the web interface can indicate
         ## this GPS is present.
-        ln -f -s $GPS /dev/bonedongle/gps.port=0.pps=1.type=cape
+        ln -f -s $GPS /dev/sensorgnome/gps.port=0.pps=1.type=cape
     fi
 )

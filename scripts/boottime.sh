@@ -5,12 +5,12 @@
 # These must be run before network interfaces are brought up!
 # This script is linked from /etc/rcS.d, before networking.
 
-# ensure we have /dev/bonedongle, whose existence is required
+# ensure we have /dev/sensorgnome, whose existence is required
 # for the master process to work.  It is automatically created
 # when USB devices are attached, but otherwise would not exist,
 # so we make sure to do that here.
 
-mkdir /dev/bonedongle
+mkdir /dev/sensorgnome
 
 # make sure the DOS boot partition of the boot SD disk (internal flash
 # disk or microSD card on beaglebone black; microSD card on beaglebone white)
@@ -54,23 +54,23 @@ rm -f /var/lib/misc/udhcpd.leases
 sync
 
 # maybe set the system clock from the RTC
-/home/bone/proj/bonedongle/scripts/maybe_get_clock_from_rtc.sh
+/home/pi/proj/sensorgnome/scripts/maybe_get_clock_from_rtc.sh
 
 # maybe do a software update
-/home/bone/proj/bonedongle/scripts/update_software.sh
+/home/pi/proj/sensorgnome/scripts/update_software.sh
 
 # if there's a network.txt file on the boot drive, read the essid and pass phrase
 if [[ -f /boot/uboot/network.txt ]]; then 
-    /home/bone/proj/bonedongle/scripts/getnetwork
+    /home/pi/proj/sensorgnome/scripts/getnetwork
 fi
 
 # If this SG is not yet registered, then add an appropriate entry to
 # the system crontab vi /etc/cron.d 
 # Successful registration will delete that file.
 
-UNIQUE_KEY_FILE=/home/bone/.ssh/id_dsa
+UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
 
 if [[ ! -f $UNIQUE_KEY_FILE ]]; then
-    echo '* * *    *   *   root  /home/bone/proj/bonedongle/scripts/register_sg' > /etc/cron.d/register_sg
+    echo '* * *    *   *   root  /home/pi/proj/sensorgnome/scripts/register_sg' > /etc/cron.d/register_sg
 fi
 

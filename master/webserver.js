@@ -138,7 +138,7 @@ WebServer.prototype.pushDeviceInfo = function (err, stdout, stderr) {
 }
 
 WebServer.prototype.deviceInfoChanged = function () {
-    ChildProcess.exec("/home/bone/proj/bonedongle/scripts/get_hub_devices.pl", this.this_pushDeviceInfo);
+    ChildProcess.exec("/home/pi/proj/sensorgnome/scripts/get_hub_devices.pl", this.this_pushDeviceInfo);
 }
 
 WebServer.prototype.pushLSFiles = function (err, stdout, stderr) {

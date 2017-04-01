@@ -8,7 +8,7 @@ for fcd in $FCDS; do
     VERSION=`/usr/bin/fcd -e $fcd -v`;
     if [[ "$VERSION" != "FUNcube Dongle V2.034" ]]; then
         echo Updating Funcube Pro Plus -e $fcd firmware to 48kHz sampling:
-        /usr/bin/fcd -e $fcd -f /home/bone/proj/fcd/firmware/FCD2.20.03.48.pro.bin
+        /usr/bin/fcd -e $fcd -f /home/pi/proj/fcd/firmware/FCD2.20.03.48.pro.bin
         sleep 5
     fi
 done;

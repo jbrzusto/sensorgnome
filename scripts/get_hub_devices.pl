@@ -8,13 +8,13 @@ use JSON;
 
 my %hub_devs;
 
-# usb hub devices are linked in /dev/bonedongle with names like these:
+# usb hub devices are linked in /dev/sensorgnome with names like these:
 # disk.port=7.name=sda1.mount=disk_port7-1
 # funcubeProPlus.port=2.alsaDev=0.usbPath=1:4
 # funcubeProPlus.port=3.alsaDev=1.usbPath=1:6
 # gps.port=1.pps=0
 
-my @devlist=`cd /dev/bonedongle; ls -1`;
+my @devlist=`cd /dev/sensorgnome; ls -1`;
 chomp @devlist;
 
 foreach my $dev (@devlist) {

@@ -4,8 +4,8 @@
 # run every 5 minutes from /etc/cron.d
 
 export AUTOSSH_PIDFILE=/var/run/autossh
-TUNNEL_PORT_FILE=/home/bone/.ssh/tunnel_port
-UNIQUE_KEY_FILE=/home/bone/.ssh/id_dsa
+TUNNEL_PORT_FILE=/home/pi/.ssh/tunnel_port
+UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
 UPLOAD_USER=sg_remote
 UPLOAD_HOST=sensorgnome.org
 UPLOAD_SSH_PORT=59022

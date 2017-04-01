@@ -30,13 +30,13 @@ if (( $x < 300 )); then
    exit 0
 fi
 
-# if any funcube or usbaudio device is found in /dev/bonedongle
+# if any funcube or usbaudio device is found in /dev/sensorgnome
 # then we're presumably okay. NB: this will need to change once
 # other sensors are being used, and cannot detect the problem of
 # individual devices having not been enumerated.  Only a total
 # lack of USB devices will trigger a reboot.
 
-if ( ls -1 /dev/bonedongle | grep -q -P -i "(funcube|usbaudio)" ); then
+if ( ls -1 /dev/sensorgnome | grep -q -P -i "(funcube|usbaudio)" ); then
 #   echo 'USB device(s) found'
    exit 0
 fi
