@@ -1,0 +1,70 @@
+#!/usr/bin/python
+#
+# register this SG, telling sensorgnome.org we exist and obtaining a
+# port tunnel number and pub/priv keypair.
+#
+# run every minute from /etc/cron.d until successful,
+# at which point the cron.d entry is deleted.
+
+import os
+import subprocess
+
+UNIQUE_KEY_FILE = "/home/pi/.ssh/id_dsa"
+UNIQUE_KEY_FILE_PUB = UNIQUE_KEY_FILE + ".pub"
+FACTORY_KEY_FILE = "/home/pi/.ssh/id_dsa_factory"
+MACHINE_ID_FILE = "/etc/beaglebone_id"
+TUNNEL_PORT_FILE = "/home/pi/.ssh/tunnel_port"
+AUTHORIZED_KEYS_FILE = "/home/pi/.ssh/authorized_keys"
+REGISTRATION_CHECK_CRONTAB_FILE = "/etc/cron.d/register_sg"
+
+SG_USER_ID = 1000
+SG_USER_GROUP = 1000
+
+UPLOAD_USER = "sg_remote"
+UPLOAD_HOST = "sensorgnome.org"
+UPLOAD_PORT = 59022
+
+MACHINE_ID = open(MACHINE_ID_FILE, "r").readline().rstrip()
+
+# quit if already registered
+if os.path.exists(UNIQUE_KEY_FILE):
+    exit (0)
+
+reply = subprocess.check_output(
+    "/bin/echo " + MACHINE_ID + " | /usr/bin/ssh -T"
+    + " -o ControlMaster=auto -o ControlPath=/tmp/sgremote"
+    + " -i " + FACTORY_KEY_FILE 
+    + " -p %s" % UPLOAD_PORT
+    + " " + UPLOAD_USER + "@" + UPLOAD_HOST
+    , shell=True)
+replyLines = reply.split('\n')
+
+# save the tunnel port number
+f = open(TUNNEL_PORT_FILE, "w")
+f.write(replyLines[0])
+f.close()
+
+# save the public key
+
+f = open(UNIQUE_KEY_FILE_PUB, "w")
+f.write(replyLines[1] + "\n")
+f.close()
+os.chmod(UNIQUE_KEY_FILE_PUB, 0600)
+os.chown(UNIQUE_KEY_FILE_PUB, SG_USER_ID, SG_USER_GROUP)
+
+# append public key to the authorized_keys file
+f = open(AUTHORIZED_KEYS_FILE, "a")
+f.write(replyLines[1] + "\n")
+f.close()
+os.chmod(AUTHORIZED_KEYS_FILE, 0600)
+os.chown(AUTHORIZED_KEYS_FILE, SG_USER_ID, SG_USER_GROUP)
+
+# save the private key
+f = open(UNIQUE_KEY_FILE, "w")
+f.write("\n".join(replyLines[2:]) + "\n")
+f.close()
+os.chmod(UNIQUE_KEY_FILE, 0600)
+os.chown(UNIQUE_KEY_FILE, SG_USER_ID, SG_USER_GROUP)
+
+# remove the system crontab entry that tries to register every minute
+os.remove(REGISTRATION_CHECK_CRONTAB_FILE)

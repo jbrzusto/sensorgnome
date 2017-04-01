@@ -1,0 +1,106 @@
+SensorGnome policies on event callbacks and timer chains
+(notes by a javascript newbie)
+
+* SensorGnome's Matron object (singleton instance is "TheMatron").
+TheMatron is the central event emitter, which is handy for debugging.
+
+* Policy for event handlers requiring 'this': Use prototype methods,
+bind to this in constructor to make a closure, then pass the closure;
+this simplifies debugging, and avoids duplicating method code for
+every object (as private methods do).
+
+Example.
+To handle event "eventName" from object "EmitObj"
+// handler:
+  MyClass.prototype.eventName = function(...) {
+     stuff using "this"
+  }
+
+// closure:
+  in Myclass constructor, 
+  this.this_eventName = this.eventName.bind(this);
+   
+// registration:
+  EmitObj.on("eventName", this.this_eventName);
+  
+* Bind: only use "this.XXX.bind(this)" in the constructor of
+  an object, as shown above.
+
+* Policy for setTimeout loops:
+i.e. where a callback from setTimeout eventually calls setTimeout with
+the same callback.  Use an extra "self" parameter to setTimout; don't use
+bind or anonymous functions as this will leak memory (fast!).
+
+Suppose method "onTimer" is called by a timeout, and that eventually
+leads to another timeout being set on "onTimer" (perhaps in another
+method).
+
+Here's how to do this:
+MyClass = function() {
+  var self = this
+...
+// handler
+  MyClass.prototype.onTimer = function(self, args) {
+      // stuff using self and args
+      //
+// inside the method which sets the timeout
+setTimeout (self.onTimer, delay, self);
+
+* Events
+The events listed here are mainly emitted via the Matron object's public emit() method, but can be
+be listened for by anyone.
+
+** devAdded
+*** args = [dev] 
+dev = {
+   path: // path_to_device,
+   attr:{
+      type: // device type
+      port: // usb hub port number
+      usbPath: // libusb-style path to device in form "x:y"
+      alsaDev: // ALSA device number  
+      stat: // fs.fileStat output for path
+    }
+}
+*** emitters: 
+**** HubMan
+when device added to watched dir (e.g. "/dev/sensorgnome")
+*** listeners:
+**** Matron
+    - consult Deployment for a plan; if found, create an appropriate device object with
+      the first found plan
+**** GPS
+     - set baud rate for device,
+     - if successful, open the device for reading and begin reading and parsing fixes
+ 
+** devRemoved
+*** args = [dev]
+dev = same arg as when "devAdded" was emitted for the device
+*** emitters:
+**** HubMan
+     when device removed from watched dir
+*** listeners:
+**** GPS
+     shut down the reader for the device
+**** usbAudio
+     - tell VAH to close device
+
+** devStalled
+*** args = [vahDev]
+vahDev: label of VAH device as given by its vahOpen event
+
+*** emitters:
+**** VAH when receiving a JSON message on stderr of vamp-alsa-host
+** vahOpen
+*** args = [devPar, callback, callbackParams]
+- devPar = {
+  port: usb port of device
+  dev: ALSA device name (e.g. "hw:0")
+  rate: the hardware sampling rate to request from the device
+  channels: the number of channels (mono=1 or stereo=2) we want
+}
+- callback: function which receives the JSON reply object
+  from vamp-alsa-host
+- callbackParams: additional parameter object passed to callback after 
+  the reply object
+

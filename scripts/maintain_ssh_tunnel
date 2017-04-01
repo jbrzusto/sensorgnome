@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# maintain a reverse tunnel portmap to sensorgnome.org
+# run every 5 minutes from /etc/cron.d
+
+export AUTOSSH_PIDFILE=/var/run/autossh
+TUNNEL_PORT_FILE=/home/pi/.ssh/tunnel_port
+UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
+UPLOAD_USER=sg_remote
+UPLOAD_HOST=sensorgnome.org
+UPLOAD_SSH_PORT=59022
+
+if [[ -f $TUNNEL_PORT_FILE ]]; then
+    if [[ -f $AUTOSSH_PIDFILE ]]; then
+        read PID < $AUTOSSH_PIDFILE
+        if [[ `readlink /proc/$PID/exe` == '/usr/lib/autossh/autossh' ]]; then
+            exit 0;
+        fi
+    fi
+    read TUNNEL_PORT < $TUNNEL_PORT_FILE
+    autossh -M 0 -f -N -T -R$TUNNEL_PORT:localhost:22 \
+        -o ExitOnForwardFailure=yes \
+        -o ControlMaster=auto \
+        -o ControlPath=/tmp/sgremote \
+        -o ServerAliveInterval=5 \
+        -o ServerAliveCountMax=3 \
+        -i $UNIQUE_KEY_FILE \
+        -p $UPLOAD_SSH_PORT \
+        $UPLOAD_USER@$UPLOAD_HOST
+fi

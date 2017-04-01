@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# for any attached funcubedongle Pro Plus, update its firmware to the 48 kHz version,
+# if not already using it.
+
+FCDS=`/usr/bin/fcd -l | awk 'BEGIN{FS=";"}/FCD Pro Plus/{sub("enum: ", "", \$2);print \$2}'`
+for fcd in $FCDS; do
+    VERSION=`/usr/bin/fcd -e $fcd -v`;
+    if [[ "$VERSION" != "FUNcube Dongle V2.034" ]]; then
+        echo Updating Funcube Pro Plus -e $fcd firmware to 48kHz sampling:
+        /usr/bin/fcd -e $fcd -f /home/pi/proj/fcd/firmware/FCD2.20.03.48.pro.bin
+        sleep 5
+    fi
+done;

@@ -22,11 +22,11 @@ mkdir proj
 cd proj
 git clone https://github.com/jbrzusto/sensorgnome
 cd sensorgnome
-## convert old 'bonedongle' to 'sensorgnome'
-sed -i -e "s/bonedongle/sensorgnome/g" *.js
+## convert old 'sensorgnome' to 'sensorgnome'
+sed -i -e "s/sensorgnome/sensorgnome/g" *.js
 
 ## import udev-rules to sensorgnome.
-ln -s /home/bone/proj/sensorgnome/udev-rules/usb-hub-devices.rules /etc/udev/rules.d/usb-hub-device.rules
+ln -s /home/pi/proj/sensorgnome/udev-rules/usb-hub-devices.rules /etc/udev/rules.d/usb-hub-device.rules
 
 ## fix automount of USB drive in hub
    sed -i -e 's/MountFlags=slave/MountFlags=shared/' /lib/systemd/system/systemd-udevd.service
