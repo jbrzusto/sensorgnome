@@ -32,7 +32,7 @@ USBAudio = function(matron, dev, devPlan, command, paramNameTable) {
     // callback closures
     this.this_devRemoved             = this.devRemoved.bind(this);
     this.this_devStalled             = this.devStalled.bind(this);
-    this.this_returnFromSetParam     = this.returnFromSetParam.bind(this);
+    this.this_setParamReply          = this.setParamReply.bind(this);
     this.this_requestSetParam        = this.requestSetParam.bind(this);
     this.this_rawFileDone            = this.rawFileDone.bind(this);
 
@@ -62,7 +62,7 @@ USBAudio.prototype.devRemoved = function(dev) {
     this.matron.removeListener("devStalled", this.this_devStalled);
     this.matron.removeListener("requestSetParam", this.this_requestSetParam);
     this.matron.removeListener("rawFileDone", this.this_rawFileDone);
-    if (this.schedules != undefined) 
+    if (this.schedules != undefined)
         for (var i in this.schedules)
             this.schedules[i].stop();
 };
@@ -71,7 +71,7 @@ USBAudio.prototype.devStalled = function(vahDevLabel) {
     if (vahDevLabel = this.dev.attr.port)
         this.stalled();
 };
-    
+
 USBAudio.prototype.init = function(self) {
     // open (without starting) the device
     // The VAH command looks like "open portnum hw:devNum RATE NUM_CHANNELS"
@@ -92,7 +92,7 @@ USBAudio.prototype.vahOpenReply = function (reply, self) {
     }
     self.isOpen = true;
 
-    // if any schedules exist (because device was restarted, e.g.), 
+    // if any schedules exist (because device was restarted, e.g.),
     // don't set them up again.
 
     if (self.schedules === undefined) {
@@ -159,7 +159,7 @@ USBAudio.prototype.setupDevSchedule = function(self) {
         self.schedules[i].start();
 
 };
-    
+
 USBAudio.prototype.ignore = function(reply) {
     // nil function for ignoring vah server reply
 };
@@ -170,7 +170,7 @@ USBAudio.prototype.startStopRawFiler = function(start) {
         return;
     if (start) {
         timestamp = new Date().getTime() / 1000.0
-        cmd = "rawFile " + this.dev.attr.port + " " + this.plan.rate + " " 
+        cmd = "rawFile " + this.dev.attr.port + " " + this.plan.rate + " "
             + this.frames + " 1 " + "\"" + DataSaver.getStream(DataSaver.getRelPath(this.dev.attr.port, "%"), ".wav", true) + "\"";
     } else {
         cmd = "\nrawFileOff " + this.dev.attr.port;
@@ -182,7 +182,7 @@ USBAudio.prototype.rawFileDone = function(devLabel, msg) {
     if (this.dev.attr.port == devLabel) {
         this.startStopRawFiler(true);
     }
-};  
+};
 
 USBAudio.prototype.startStop = function(newState, oldState, self) {
     self.on = (newState == "on");
@@ -199,34 +199,34 @@ USBAudio.prototype.startStopReply = function(reply, self) {
     if (reply.error)
         self.matron.emit("warning", "In trying to start/stop device, got: " + reply.error);
 };
-    
+
 USBAudio.prototype.stalled = function() {
     // reset this device
     this.matron.emit("output", "usbaudio: About to do " + this.command + " " + this.baseArgs.concat("-R").join(" "));
     ChildProcess.execFile(this.command, this.baseArgs.concat("-R"));
 };
-    
+
 USBAudio.prototype.requestSetParam = function(req) {
     // req has items port, par, val
     // only act if this message is for us
-    if (req.port != this.dev.attr.port) 
+    if (req.port != this.dev.attr.port)
         return;
     this.setParam(req.val, this.lastParSetting.val, {self:this, par:req.par});
 };
 
-    
+
 USBAudio.prototype.setParam = function(newState, oldState, extra) {
     var self = extra.self;
     var par = extra.par;
     var parSetting = {time:(new Date()).getTime()/1000, par: par, val: newState, port:self.dev.attr.port};
     self.lastParSetting = Util._extend({}, parSetting);
-    ChildProcess.execFile(self.command, 
+    ChildProcess.execFile(self.command,
                           self.baseArgs.concat(par).concat(newState),
-                          self.returnFromSetParam.bind(self, parSetting));
-                          
+                          self.setParamReply.bind(self, parSetting));
+
 };
 
-USBAudio.prototype.returnFromSetParam = function(parSetting, code, stdout, stderr) {
+USBAudio.prototype.setParamReply = function(parSetting, code, stdout, stderr) {
     if ((! code) || (!code.code)) {
         parSetting.errCode = 0;
         parSetting.err = "";
