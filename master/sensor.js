@@ -74,6 +74,7 @@ Sensor.prototype.devRemoved = function(dev) {
     if (this.schedules != undefined)
         for (var i in this.schedules)
             this.schedules[i].stop();
+    this.hw_delete();
 };
 
 Sensor.prototype.devStalled = function(vahDevLabel) {

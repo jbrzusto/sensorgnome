@@ -79,6 +79,10 @@ USBAudio.prototype.hw_init = function() {
     // nothing to do for usbaudio; handled by VAH
 };
 
+USBAudio.prototype.hw_delete = function() {
+    // nothing to do for usbaudio; handled by VAH
+};
+
 USBAudio.prototype.translateParamName = function(name) {
     // convert parameter name to something appropriate for the
     // command-line parameter setting program by looking it up
