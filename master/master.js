@@ -71,8 +71,8 @@ Deployment = new (require("./deployment.js").Deployment) (
 
 Deployment.shortLabel = Deployment.shortLabel.replace(/-/g,"_");
 
-TagFinder     = new (require('./tagfinder.js').TagFinder) (TheMatron, 
-                                                           "/home/pi/proj/sensorgnome/find_tags/find_tags_unifile", 
+TagFinder     = new (require('./tagfinder.js').TagFinder) (TheMatron,
+                                                           "/home/pi/proj/find_tags/find_tags_unifile",
                                                            TheMatron.tagDBFile,
                                                            Deployment.module_options.find_tags.params
                                                           );
