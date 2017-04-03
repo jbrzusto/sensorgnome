@@ -17,8 +17,6 @@ USBAudio = function(matron, dev, devPlan) {
 // plan: the actual plan
 
     Sensor.Sensor.call(this, matron, dev, devPlan);
-    this.label = devPlan.devLabel;
-    this.plan = devPlan.plan;
     if(dev.attr.type.match(/funcube/)) {
         this.command = "/usr/bin/fcd";
         this.baseArgs = ["-p", dev.attr.usbPath];
