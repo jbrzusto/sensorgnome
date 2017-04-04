@@ -29,6 +29,7 @@ Sensor = function(matron, dev, devPlan) {
     this.rawFiling = false;  // are we supposed to be recording raw files?
 
     // callback closures
+    this.this_initDone               = this.initDone.bind(this);
     this.this_devRemoved             = this.devRemoved.bind(this);
     this.this_devStalled             = this.devStalled.bind(this);
     this.this_setParamReply          = this.setParamReply.bind(this);
@@ -40,7 +41,6 @@ Sensor = function(matron, dev, devPlan) {
     this.matron.on("requestSetParam", this.this_requestSetParam);
     this.matron.on("rawFileDone", this.this_rawFileDone);
 
-    this.init(this);
 };
 
 getSensor = function(matron, dev, devPlan) {
@@ -60,6 +60,8 @@ getSensor = function(matron, dev, devPlan) {
     default:
         rv = null;
     }
+    if (rv)
+        setTimeout(rv.init.bind(rv), 250);
     return(rv);
 };
 
@@ -82,11 +84,14 @@ Sensor.prototype.devStalled = function(vahDevLabel) {
         this.stalled();
 };
 
-Sensor.prototype.init = function(self) {
+Sensor.prototype.init = function() {
     // open (without starting) the device
-    self.hw_init();
-    var cmd = "open " + self.dev.attr.port + " " + self.hw_devPath() + " " + self.plan.rate + " " + self.plan.channels;
-    self.matron.emit("vahSubmit", cmd, self.vahOpenReply, self);
+    this.hw_init(this.this_initDone);
+};
+
+Sensor.prototype.initDone = function() {
+    var cmd = "open " + this.dev.attr.port + " " + this.hw_devPath() + " " + this.plan.rate + " " + this.plan.channels;
+    this.matron.emit("vahSubmit", cmd, this.vahOpenReply, this);
 };
 
 Sensor.prototype.vahOpenReply = function (reply, self) {

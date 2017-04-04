@@ -73,8 +73,9 @@ USBAudio.prototype.hw_devPath = function() {
     return "hw:" + this.dev.attr.alsaDev;
 };
 
-USBAudio.prototype.hw_init = function() {
+USBAudio.prototype.hw_init = function(callback) {
     // nothing to do for usbaudio; handled by VAH
+    callback();
 };
 
 USBAudio.prototype.hw_delete = function() {

@@ -58,6 +58,8 @@ WebServer     = new (require('./webserver.js')).WebServer(TheMatron);
 Schedule      = require('./schedule.js');
 Sensor        = require('./sensor.js');
 USBAudio      = require("./usbaudio.js");
+RTLSDR        = require("./rtlsdr.js");
+
 //WavMaker      = require('./wavmaker.js');
 
 Deployment = new (require("./deployment.js").Deployment) (
@@ -133,4 +135,3 @@ WebServer.start();
 // Start the tagFinder
 
 TagFinder.start();
-

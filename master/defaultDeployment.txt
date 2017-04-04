@@ -2,7 +2,7 @@
     "info": "default deployment",
     "who": "who is responsible for this deployment",
     "contact": "contact information for responsible party",
-    "shortLabel": "SG1",
+    "shortLabel": "changeMe",
     "acquire": {
         "gps": {
             "secondsBetweenFixes": 300
@@ -37,7 +37,27 @@
             {
                 "key": {
                     "port": ".*",
-                    "devType": "funcube.*"
+                    "devType": "rtlsdr"
+                },
+                "rate": 50000,
+                "channels": 2,
+                "schedule": {
+                    "type": "AlwaysOn"
+                },
+                "devParams": [
+                    {
+                        "name": "frequency",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 166.376
+                        }
+                    }
+                ]
+            },
+            {
+                "key": {
+                    "port": ".*",
+                    "devType": "funcubeProPlus"
                 },
                 "rate": 48000,
                 "channels": 2,
@@ -51,11 +71,46 @@
                             "type": "Constant",
                             "value": 166.376
                         }
+                    },
+                    {
+                        "name": "lna_gain",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "name": "rf_filter",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 6
+                        }
+                    },
+                    {
+                        "name": "mixer_gain",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 1
+                        }
+                    },
+                    {
+                        "name": "if_filter",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 0
+                        }
+                    },
+                    {
+                        "name": "if_gain",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 0
+                        }
                     }
                 ],
                 "raw": {
                     "enabled": false,
-                    "chunkMinutes": 1
+                    "chunkMinutes": 0.5
                 },
                 "plugins": [
                     {
@@ -73,9 +128,54 @@
                             },
                             {
                                 "name": "maxfreq",
+                                "value": 8
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "key": {
+                    "port": ".*",
+                    "devType": "funcubePro"
+                },
+                "rate": 48000,
+                "channels": 2,
+                "schedule": {
+                    "type": "AlwaysOn"
+                },
+                "devParams": [
+                    {
+                        "name": "frequency",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 166.376
+                        }
+                    }
+                ],
+                "raw": {
+                    "enabled": false,
+                    "chunkMinutes": 0.5
+                },
+                "plugins": [
+                    {
+                        "library": "lotek-plugins.so",
+                        "name": "findpulsefdbatch",
+                        "outputID": "pulses",
+                        "params": [
+                            {
+                                "name": "plen",
+                                "value": 2.5
+                            },
+                            {
+                                "name": "minfreq",
+                                "value": 0
+                            },
+                            {
+                                "name": "maxfreq",
                                 "value": 24
                             }
-                        ]                           
+                        ]
                     }
                 ]
             },
@@ -91,7 +191,7 @@
                 },
                 "raw": {
                     "enabled": true,
-                    "chunkMinutes": 60
+                    "chunkMinutes": 0.5
                 }
             }
         ]

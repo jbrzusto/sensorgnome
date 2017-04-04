@@ -1,5 +1,5 @@
 /*
-  
+
   vah.js - maintain a running instance of vamp-alsa-host and communicate
   with it.
 
@@ -10,7 +10,7 @@
 */
 
 VAH = function(matron, prog, sockName) {
- 
+
     this.matron = matron;
     this.prog = prog;
     this.sockName = sockName;
@@ -23,7 +23,7 @@ VAH = function(matron, prog, sockName) {
                                  // callback: function(reply, par) to call with reply and extra parameter
                                  // par:  extra parameter for callback
                                  // n: number of times to use this handler
-  
+
     this.commandQueue = []; // list of commands queued before command connection is established
     this.replyBuf = "";
     this.quitting = false;
@@ -137,7 +137,7 @@ VAH.prototype.connectData = function() {
     }
 //    console.log("about to connect data socket\n")
     this.dataSock = Net.connect(this.sockPath, function() {});
-    
+
     this.dataSock.on("error" , this.this_dataSockProblem);
 //    this.dataSock.on("end"   , this.this_dataSockProblem);
 //    this.dataSock.on("close" , this.this_dataSockProblem);
@@ -213,8 +213,8 @@ VAH.prototype.gotCmdReply = function (data) {
         } else {
             // deal with the new reply
             var handler = this.replyHandlerQueue.shift();
-            
-            if (!handler) 
+
+            if (!handler)
                 continue;
             if (handler.callback)
                 handler.callback(reply, handler.par);
@@ -248,5 +248,5 @@ VAH.prototype.getRawStream = function(devLabel, rate, doFM) {
     rawSock.start = function() {rawSock.write("rawStream " + devLabel + " " + rate + " " + doFM + "\n")};
     return rawSock;
 };
-    
+
 exports.VAH = VAH;

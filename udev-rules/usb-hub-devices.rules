@@ -176,139 +176,156 @@ LABEL="rtlsdr"
 
 ################# START RTLSDR DETECTION #################
 # original RTL2832U vid/pid (hama nano, for example)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2832",GOTO="rtlsdr2"
 
 # RTL2832U OEM vid/pid, e.g. ezcap EzTV668 (E4000), Newsky TV28T (E4000/R820T) etc
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",GOTO="rtlsdr2"
 
 # DigitalNow Quad DVB-T PCI-E card (4x FC0012?)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6680",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6680",GOTO="rtlsdr2"
 
 # Leadtek WinFast DTV Dongle mini D (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6f0f",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0413", ATTRS{idProduct}=="6f0f",GOTO="rtlsdr2"
 
 # Genius TVGo DVB-T03 USB dongle (Ver. B)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0458", ATTRS{idProduct}=="707f",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0458", ATTRS{idProduct}=="707f",GOTO="rtlsdr2"
 
 # Terratec Cinergy T Stick Black (rev 1) (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00a9",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00a9",GOTO="rtlsdr2"
 
 # Terratec NOXON rev 1 (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b3",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b3",GOTO="rtlsdr2"
 
 # Terratec Deutschlandradio DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b4",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b4",GOTO="rtlsdr2"
 
 # Terratec NOXON DAB Stick - Radio Energy (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b5",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b5",GOTO="rtlsdr2"
 
 # Terratec Media Broadcast DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b7",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b7",GOTO="rtlsdr2"
 
 # Terratec BR DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b8",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b8",GOTO="rtlsdr2"
 
 # Terratec WDR DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b9",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00b9",GOTO="rtlsdr2"
 
 # Terratec MuellerVerlag DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c0",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c0",GOTO="rtlsdr2"
 
 # Terratec Fraunhofer DAB Stick (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c6",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00c6",GOTO="rtlsdr2"
 
 # Terratec Cinergy T Stick RC (Rev.3) (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d3",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d3",GOTO="rtlsdr2"
 
 # Terratec T Stick PLUS (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d7",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00d7",GOTO="rtlsdr2"
 
 # Terratec NOXON rev 2 (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00e0",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0ccd", ATTRS{idProduct}=="00e0",GOTO="rtlsdr2"
 
 # PixelView PV-DT235U(RN) (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1554", ATTRS{idProduct}=="5020",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1554", ATTRS{idProduct}=="5020",GOTO="rtlsdr2"
 
 # Astrometa DVB-T/DVB-T2 (R828D)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0131",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0131",GOTO="rtlsdr2"
 
 # HanfTek DAB+FM+DVB-T
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0133",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="15f4", ATTRS{idProduct}=="0133",GOTO="rtlsdr2"
 
 # Compro Videomate U620F (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0620",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0620",GOTO="rtlsdr2"
 
 # Compro Videomate U650F (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0650",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0650",GOTO="rtlsdr2"
 
 # Compro Videomate U680F (E4000)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0680",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="185b", ATTRS{idProduct}=="0680",GOTO="rtlsdr2"
 
 # GIGABYTE GT-U7300 (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d393",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d393",GOTO="rtlsdr2"
 
 # DIKOM USB-DVBT HD
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d394",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d394",GOTO="rtlsdr2"
 
 # Peak 102569AGPK (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d395",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d395",GOTO="rtlsdr2"
 
 # KWorld KW-UB450-T USB DVB-T Pico TV (TUA9001)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d397",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d397",GOTO="rtlsdr2"
 
 # Zaapa ZT-MINDVBZP (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d398",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d398",GOTO="rtlsdr2"
 
 # SVEON STV20 DVB-T USB & FM (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d39d",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d39d",GOTO="rtlsdr2"
 
 # Twintech UT-40 (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a4",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a4",GOTO="rtlsdr2"
 
 # ASUS U3100MINI_PLUS_V2 (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a8",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3a8",GOTO="rtlsdr2"
 
 # SVEON STV27 DVB-T USB & FM (FC0013)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3af",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3af",GOTO="rtlsdr2"
 
 # SVEON STV21 DVB-T USB & FM
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3b0",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b80", ATTRS{idProduct}=="d3b0",GOTO="rtlsdr2"
 
 # Dexatek DK DVB-T Dongle (Logilink VG0002A) (FC2580)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1101",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1101",GOTO="rtlsdr2"
 
 # Dexatek DK DVB-T Dongle (MSI DigiVox mini II V3.0)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1102",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1102",GOTO="rtlsdr2"
 
 # Dexatek DK 5217 DVB-T Dongle (FC2580)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1103",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1103",GOTO="rtlsdr2"
 
 # MSI DigiVox Micro HD (FC2580)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1104",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1d19", ATTRS{idProduct}=="1104",GOTO="rtlsdr2"
 
 # Sweex DVB-T USB (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="a803",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="a803",GOTO="rtlsdr2"
 
 # GTek T803 (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="b803",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="b803",GOTO="rtlsdr2"
 
 # Lifeview LV5TDeluxe (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="c803",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="c803",GOTO="rtlsdr2"
 
 # MyGica TD312 (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d286",GOTO="rtlsdr2"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d286",GOTO="rtlsdr2"
 
 # PROlectrix DV107669 (FC0012)
-ACTION=="add",SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d803",GOTO="rtlsdr2"
-
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d803",GOTO="rtlsdr2"
 
 GOTO="done"
 
 LABEL="rtlsdr2"
+ACTION=="add", GOTO="add_rtlsdr"
+ACTION=="remove", GOTO="remove_rtlsdr"
+GOTO="done"
+
+# remove rtlsdr, but only when device physically removed, not when
+# just the kernel driver is detached
+
+LABEL="remove_rtlsdr"
+IMPORT{program}="/bin/echo 'remove_rtlsdr %E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
+PROGRAM=="/home/pi/proj/sensorgnome/scripts/rmlinktarget /dev/sensorgnome/usb/%k"
+GOTO="done"
+
+LABEL="add_rtlsdr"
+IMPORT{program}="/bin/echo 'add_rtlsdr %E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
 MODE:="0666"
+## record the usb bus path e.g. 1-1.2
+DRIVER=="usb",ENV{usbbuspath}="%k",GOTO="done"
 IMPORT{program}="/usr/bin/awk -f /home/pi/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
 ENV{major}="%M"
-ENV{major}=="212",SYMLINK+="sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}"
+#ENV{major}=="212",SYMLINK+="sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}"
+ENV{major}=="212",ENV{"sgname"}="/dev/sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}",IMPORT{program}="/bin/touch %E{sgname}",IMPORT{program}="/bin/ln -s %E{sgname} /dev/sensorgnome/usb/%E{usbbuspath}"
+IMPORT{program}="/bin/echo '%E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
 GOTO="done"
 
 LABEL="done"
