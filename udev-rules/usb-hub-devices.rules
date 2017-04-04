@@ -45,9 +45,19 @@
 # Heavily modified from Arch linux file media-by-label-auto-mount.rules
 
 # uncomment the following block for debug info
-ACTION=="add",IMPORT{program}="/bin/sh -c 'echo Add %p %k $driver %M %m %s{busnum} %s{devnum} >> /tmp/rules.txt'",GOTO="main"
-ACTION=="remove",IMPORT{program}="/bin/sh -c 'echo Remove %p %k >> /tmp/rules.txt'",GOTO="main"
-ACTION=="change",IMPORT{program}="/bin/sh -c 'echo Change %p %k >> /tmp/rules.txt'",GOTO="main"
+#ACTION=="add",IMPORT{program}="/bin/sh -c 'echo Add %p %k $driver %M %m %s{busnum} %s{devnum} >> /tmp/rules.txt'",GOTO="main"
+#ACTION=="remove",IMPORT{program}="/bin/sh -c 'echo Remove %p %k %M %m >> /tmp/rules.txt'",GOTO="main"
+#ACTION=="change",IMPORT{program}="/bin/sh -c 'echo Change %p %k >> /tmp/rules.txt'",GOTO="main"
+
+ACTION=="add",GOTO="main"
+
+# if physically removing a USB device, remove the link to it in /dev/sensorgnome via the portnum symlink in /dev/sensorgnome/usb
+# we do this so that if libusb detaches kernel drivers from a device, that by itself doesn't remove the link in /dev/sensorgnome
+# (e.g. for rtlsdr dongles)
+
+ACTION=="remove",ENV{MAJOR}=="189",IMPORT{program}="/usr/bin/awk -f /home/pi/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p",IMPORT{program}="/home/pi/proj/sensorgnome/scripts/rmlinkandtarget.sh /dev/sensorgnome/usb/%E{PORT_NUM}",GOTO="done"
+ACTION=="remove",GOTO="main"
+ACTION=="change",GOTO="main"
 IMPORT{program}="/bin/sh -c 'echo Unknown %p %k >> /tmp/rules.txt'"
 
 SUBSYSTEM!="usb",GOTO="not_usb_hub"
@@ -304,28 +314,20 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1f4d", ATTRS{idProduct}=="d803",GOTO="rtlsd
 GOTO="done"
 
 LABEL="rtlsdr2"
-ACTION=="add", GOTO="add_rtlsdr"
-ACTION=="remove", GOTO="remove_rtlsdr"
-GOTO="done"
-
-# remove rtlsdr, but only when device physically removed, not when
-# just the kernel driver is detached
-
-LABEL="remove_rtlsdr"
-IMPORT{program}="/bin/echo 'remove_rtlsdr %E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
-PROGRAM=="/home/pi/proj/sensorgnome/scripts/rmlinktarget /dev/sensorgnome/usb/%k"
-GOTO="done"
-
+ACTION=="remove",GOTO="done"
 LABEL="add_rtlsdr"
-IMPORT{program}="/bin/echo 'add_rtlsdr %E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
 MODE:="0666"
 ## record the usb bus path e.g. 1-1.2
-DRIVER=="usb",ENV{usbbuspath}="%k",GOTO="done"
 IMPORT{program}="/usr/bin/awk -f /home/pi/proj/sensorgnome/scripts/get_usb_device_port_number.awk %p"
-ENV{major}="%M"
-#ENV{major}=="212",SYMLINK+="sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}"
-ENV{major}=="212",ENV{"sgname"}="/dev/sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}",IMPORT{program}="/bin/touch %E{sgname}",IMPORT{program}="/bin/ln -s %E{sgname} /dev/sensorgnome/usb/%E{usbbuspath}"
-IMPORT{program}="/bin/echo '%E{sgname} %E{usbbuspath} %p %k' >> /tmp/udevdbg.txt
+## get the sg device name, encoding some properties
+ENV{sgname}="/dev/sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{devnum}.vidpid=%s{idVendor}:%s{idProduct}.mfg=%s{manufacturer}.prod=%s{product}"
+## Touch a file in /dev/sensorgnome, rather than using SYMLINK+=
+## because we look after deletion ourselves (see rule for ACTION=="remove" near top of file)
+## To support physical removal of device, we create symlinks to /dev/sensorgnome/*.port=N.* from /dev/sensorgnome/usb/N,
+## and then delete both ends of the link upon a plain "usb" device removal, which doesn't
+## happen unless the device is physically removed.
+
+ENV{MAJOR}=="212",IMPORT{program}="/bin/mkdir -p /dev/sensorgnome/usb",IMPORT{program}="/bin/touch %E{sgname}",IMPORT{program}="/bin/sh -c '/bin/ln -s %E{sgname} /dev/sensorgnome/usb/%E{PORT_NUM}'"
 GOTO="done"
 
 LABEL="done"

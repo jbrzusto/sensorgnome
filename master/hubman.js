@@ -5,7 +5,7 @@
   Handle devices as they appear or disappear from a specified
   directory by emitting events.  Anyone interested in the devices
   can register a listener on the device manager for relevant events.
-  
+
   Devices have names like "funcubePro.port=3.alsaDev=2.usbPath=1:22"
   where "." separates the device type and attributes settings
   so that in this example:
@@ -15,13 +15,13 @@
     - the USB path is 1:22 (bus 1, device #22); this is as required by libusb
 
   This hub manager ignores any devices without the "port=X" attribute.
-  
+
   Note that these device names are symlinks in special directory
   created by udev rules; e.g. /dev/sensorgnome.  That directory is
   meant to include only devices which we recognize and make visible to
   end users.
 
-  Other objects can force the device manager to emit an event by 
+  Other objects can force the device manager to emit an event by
   calling its "emit" method.
 
   Events emitted
@@ -33,7 +33,7 @@
   "devAdded":  a device has been plugged into a USB port
    arg is:
    {
-     path: full path to device symlink 
+     path: full path to device symlink
      attr: list of attribute settings.  Following the example above,
            this would be {type:"funcubePro", port:3, alsaDev:2, usbPath:"1:22"}
      stat: filesystem stat object
@@ -42,11 +42,11 @@
   "devRemoved" : a device has been removed from a USB port
   arg is:
     {
-     path: full path to device symlink 
+     path: full path to device symlink
      attr: as for "devAdded"
      stat: filesystem stat object (from when device was first detected)
      }
-   
+
 */
 
 HubMan = function(matron, root) {
@@ -66,13 +66,13 @@ HubMan = function(matron, root) {
 
     this.enumeratePreExistingDevices = function() {
         var ls = Fs.readdirSync(root);
-        for (var i in ls) 
+        for (var i in ls)
             rootChanged("rename", ls[i]);
     };
 
     rootChanged = function(event, filename) {
         var attr = attrOf(filename);
-        if (attr.port === null)
+        if (! attr.port)
             return;  // not a USB-port device - we don't care
         var port = attr.port;
         try {
@@ -114,7 +114,7 @@ HubMan = function(matron, root) {
         };
     };
 
-    // return a list of attached devices 
+    // return a list of attached devices
     this.getDevs = function() {
         return devs;
     };
