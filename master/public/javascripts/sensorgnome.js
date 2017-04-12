@@ -81,7 +81,11 @@ var sensorgnomeInit = function() {
                 var hit = VAHBuf.shift().split(/,/);
                 if (hit.length == 5) {
                     line += (new Date(parseFloat(hit[1]) * 1000)).toISOString().replace(/[ZT]/g," ").substr(11);
-                    line += hit[0] + " @" + Math.round(1000*(devList[parseInt(hit[0].substr(1))].realFreq + hit[2]/1000))/1000 + " MHz " + hit[3] +" / " + hit[4] + " dB\n";
+                    var port = parseInt(hit[0].substr(1));
+                    if (devList[port])
+                        line += hit[0] + " @" + Math.round(1000*(devList[port].realFreq + hit[2]/1000))/1000 + " MHz " + hit[3] +" / " + hit[4] + " dB\n";
+                    else
+                        line += hit[0] + " @???.??? MHz " + hit[3] +" / " + hit[4] + " dB\n";
                 }
             }
             elt.append(line);
@@ -303,7 +307,7 @@ var sensorgnomeInit = function() {
                 if (frameRate == Infinity)
                     // protect against seeing fileWriter before
                     frameRate = rate;
-                wfw += "<b>Audio device in port " + raw.port + "</b> (" + (devList ? devList[raw.port]["name"] : "") + ")<br><ul>";
+                wfw += "<b>Writing raw samples from device in port " + raw.port + "</b> (" + ((devList && devList[raw.port]) ? devList[raw.port]["name"] : "") + ")<br><ul>";
                 var hmsLeft = new Date((raw.secondsToWrite - raw.secondsWritten)*1000).toTimeString().substring(0, 8);
                 wfw += "<li>" + hmsLeft + "<progress value=" + raw.framesWritten / raw.framesToWrite + ">" + "</progress> " +  " remaining for file:<br><pre> " + raw.fileName + "</pre></li>";
                 wfw += "<li>data rate:  nominal = " + raw.rate + " Hz; measured = " + frameRate + " Hz " + "; bias = " + Math.abs(Math.round((frameRate - raw.rate) / raw.rate * 1.0e6)) + " ppm " + ((frameRate > raw.rate) ? "fast" : "slow") + "</li>";

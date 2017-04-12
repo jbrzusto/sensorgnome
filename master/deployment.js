@@ -36,7 +36,7 @@ Deployment = function(pathlist) {
             break;
        } catch (e)
        {
-//           console.log("Unable to obtain deployment plan from file:\n" + pathlist[i] + "\n - reason:  " + e);
+           console.log("Unable to obtain deployment plan from file:\n" + pathlist[i] + "\n - reason:  " + e);
        };
     }
     if (!okay)
@@ -56,5 +56,5 @@ Deployment.prototype.lookup = function(port, devType) {
     }
     return null;
 };
-            
+
 exports.Deployment = Deployment;

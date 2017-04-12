@@ -37,6 +37,7 @@ Sensor = function(matron, dev, devPlan) {
     this.this_rawFileDone            = this.rawFileDone.bind(this);
 
     this.matron.on("devRemoved", this.this_devRemoved);
+    this.matron.on("quit", this.this_devRemoved);
     this.matron.on("devStalled", this.this_devStalled);
     this.matron.on("requestSetParam", this.this_requestSetParam);
     this.matron.on("rawFileDone", this.this_rawFileDone);

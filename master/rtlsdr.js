@@ -25,7 +25,7 @@ RTLSDR = function(matron, dev, devPlan) {
     // e.g. /tmp/rtlsdr-1:4.sock for a device with usb path 1:4 (bus:dev)
     this.sockPath = "/tmp/rtlsdr-" + dev.attr.usbPath + ".sock";
     // path to rtl_tcp
-    this.prog = "/home/pi/proj/librtlsdr/build/src/rtl_tcp";
+    this.prog = "/usr/bin/rtl_tcp";
 
     // hardware rate needed to achieve plan rate;
     // same algorithm as used in vamp-alsa-host/RTLSDRMinder::getHWRateForRate
@@ -50,7 +50,9 @@ RTLSDR = function(matron, dev, devPlan) {
     this.this_cmdSockConnected = this.cmdSockConnected.bind(this);
     this.this_connectCmd       = this.connectCmd.bind(this);
     this.this_serverReady      = this.serverReady.bind(this);
-    this.this_cmdSockProblem   = this.cmdSockProblem.bind(this);
+    this.this_cmdSockError     = this.cmdSockError.bind(this);
+    this.this_cmdSockClose     = this.cmdSockClose.bind(this);
+    this.this_cmdSockEnd       = this.cmdSockEnd.bind(this);
     this.this_spawnServer      = this.spawnServer.bind(this);
 
 };
@@ -59,23 +61,37 @@ RTLSDR.prototype = Object.create(Sensor.Sensor.prototype);
 RTLSDR.prototype.constructor = RTLSDR;
 
 RTLSDR.prototype.rtltcpCmds = {
-    // table of command recognized by rtltcp
-    // the command is sent as a byte, followed by a big-endian 32-bit parameter
+    // table of command recognized by rtl_tcp
+    //
+    // - the command is sent as a byte, followed by a big-endian 32-bit parameter
+    //
+    // - units for parameters below are those understood by rtl_tcp, and are integers
+    //
+    // - parameters have the same name in deployment.txt, but some of the units
+    //   differ there, since they are allowed to be reals.
 
-    frequency:        1, // frequency in Hz
-    rate:             2, // sampling rate, in Hz
-    gain_mode:        3, // whether or not to allow gains to be set (0 = no, 1 = yes)
-    tuner_gain:       4, // in units of 0.1 dB
-    freq_correction:  5, // in units of ppm; we don't use this
-    if_gain:          6, // (stage << 16) | (X) where X is in units of 0.1 dB, and stage is 1..6
-    test_mode:        7, // send counter instead of real data, for testing (0 = no, 1 = yes)
-    agc_mode:         8, // automatic gain control (0 = no, 1 = yes); not sure which gain stages are affected
-    direct_sampling:  9, // sample RF directly, rather than IF stage; 0 = no, 1 = yes (not for radio frequencies above 10 MHz)
-    offset_tuning:   10, // detune away from exact carrier frequency, to avoid deadzone in some tuners; 0 = no, 1 = yes
-    rtl_xtal:        11, // set use of crystal built into rtl8232 chip? (vs off-chip tuner); 0 = no, 1 = yes
-    tuner_xtal:      12, // set use of crystal on tuner (vs off-board tuner); 0 = no, 1 = yes
-    tuner_gain:      13, // number of possible settings is returned when first connecting to rtl_tcp
-    streaming:       14  // have rtl_tcp start (1) or stop (0) submitting URBs and sending sample data to other connection
+    frequency:          1, // listening frequency;  units: Hz; (deployment.txt units: MHz)
+    rate:               2, // sampling rate, in Hz
+    gain_mode:          3, // whether or not to allow gains to be set (0 = no, 1 = yes)
+    tuner_gain:         4, // units: 0.1 dB (deployment.txt units: dB); closest available tuner gain is selected
+    freq_correction:    5, // in units of ppm; we don't use this
+
+    // gains for IF stages are sent using the same command; the stage # is encoded in the upper 16 bits of the 32-bit parameter
+    if_gain1:           6, // IF stage 1 gain; units: 0.1 dB (deployment.txt units: dB)
+    if_gain2:           6, // IF stage 2 gain; units: 0.1 dB (deployment.txt units: dB)
+    if_gain3:           6, // IF stage 3 gain; units: 0.1 dB (deployment.txt units: dB)
+    if_gain4:           6, // IF stage 4 gain; units: 0.1 dB (deployment.txt units: dB)
+    if_gain5:           6, // IF stage 5 gain; units: 0.1 dB (deployment.txt units: dB)
+    if_gain6:           6, // IF stage 6 gain; units: 0.1 dB (deployment.txt units: dB)
+
+    test_mode:          7, // send counter instead of real data, for testing (0 = no, 1 = yes)
+    agc_mode:           8, // automatic gain control (0 = no, 1 = yes); not sure which gain stages are affected
+    direct_sampling:    9, // sample RF directly, rather than IF stage; 0 = no, 1 = yes (not for radio frequencies above 10 MHz)
+    offset_tuning:     10, // detune away from exact carrier frequency, to avoid deadzone in some tuners; 0 = no, 1 = yes
+    rtl_xtal:          11, // set use of crystal built into rtl8232 chip? (vs off-chip tuner); 0 = no, 1 = yes
+    tuner_xtal:        12, // set use of crystal on tuner (vs off-board tuner); 0 = no, 1 = yes
+    tuner_gain_index:  13, // tuner gain setting by index into array of possible values; array size is returned when first connecting to rtl_tcp
+    streaming:         14  // have rtl_tcp start (1) or stop (0) submitting URBs and sending sample data to other connection
 };
 
 RTLSDR.prototype.hw_devPath = function() {
@@ -95,7 +111,13 @@ RTLSDR.prototype.spawnServer = function() {
     if (this.quitting)
         return;
     this.cmdSock = null;
-    console.log("RTLSDR about to spawn server\n");
+//    console.log("about to delete command socket with path: " + this.sockPath + "\n");
+    try {
+        // Note: node throws on this call if this.sockPath doesn't exist;
+        Fs.unlinkSync(this.sockPath);
+    } catch (e)
+    {};
+//    console.log("RTLSDR about to spawn server\n");
     var server = ChildProcess.spawn(this.prog, ["-p", this.sockPath, "-d", this.dev.attr.usbPath, "-s", this.hw_rate]);
     server.on("exit", this.this_serverDied);
     server.on("error", this.this_serverDied);
@@ -104,8 +126,10 @@ RTLSDR.prototype.spawnServer = function() {
 };
 
 RTLSDR.prototype.serverReady = function(data) {
-    this.server.stdout.removeListener("data", this.this_serverReady);
-    this.connectCmd();
+    if (data.toString().match(/Listening/)) {
+        this.server.stderr.removeListener("data", this.this_serverReady);
+        this.connectCmd();
+    }
 };
 
 RTLSDR.prototype.connectCmd = function() {
@@ -113,16 +137,44 @@ RTLSDR.prototype.connectCmd = function() {
     if (this.cmdSock) {
         return;
     }
-//    console.log("about to connect command socket\n")
+//    console.log("about to connect command socket with path: " + this.sockPath + "\n");
     this.cmdSock = Net.connect(this.sockPath, this.this_cmdSockConnected);
-    this.cmdSock.on("error" , this.this_cmdSockProblem);
-//    this.cmdSock.on("end"   , this.this_cmdSockProblem);
-//    this.cmdSock.on("close" , this.this_cmdSockProblem);
+    this.cmdSock.on("error" , this.this_cmdSockError);
+    this.cmdSock.on("end"   , this.this_cmdSockEnd);
+    this.cmdSock.on("close" , this.this_cmdSockClose);
 //    this.cmdSock.on("data"  , this.this_gotCmdReply);
 };
 
-RTLSDR.prototype.cmdSockProblem = function(e) {
-//    console.log("Got command socket problem " + e.toString() + "\n");
+RTLSDR.prototype.cmdSockError = function(e) {
+    console.log("Got command socket error " + e.toString() + "\n");
+    if (! e)
+        return;
+    if (this.cmdSock) {
+        this.cmdSock.destroy();
+        this.cmdSock = null;
+    }
+    if (this.quitting || this.inDieHandler)
+        return;
+    setTimeout(this.this_hw_stalled, 5001);
+};
+
+RTLSDR.prototype.cmdSockEnd = function(e) {
+    console.log("Got command socket end " + e.toString() + "\n");
+    if (! e)
+        return;
+    if (this.cmdSock) {
+        this.cmdSock.destroy();
+        this.cmdSock = null;
+    }
+    if (this.quitting || this.inDieHandler)
+        return;
+    setTimeout(this.this_hw_stalled, 5001);
+};
+
+RTLSDR.prototype.cmdSockClose = function(e) {
+    console.log("Got command socket close " + e.toString() + "\n");
+    if (!e )
+        return;
     if (this.cmdSock) {
         this.cmdSock.destroy();
         this.cmdSock = null;
@@ -134,10 +186,6 @@ RTLSDR.prototype.cmdSockProblem = function(e) {
 
 RTLSDR.prototype.cmdSockConnected = function() {
     // process any queued command
-//    while (this.commandQueue.length) {
-//        console.log("RTLSDR about to submit queued: " + this.commandQueue[0] + "\n");
-//        this.cmdSock.write(this.commandQueue.shift());
-//    }
     if (this.initCallback) {
         var cb = this.initCallback;
         this.initCallback = null;
@@ -173,7 +221,8 @@ RTLSDR.prototype.serverDied = function(code, signal) {
 };
 
 RTLSDR.prototype.hw_delete = function() {
-    this.server.kill("SIGKILL");
+    if (this.server)
+        this.server.kill("SIGKILL");
     this.server = null;
 };
 
@@ -190,11 +239,35 @@ RTLSDR.prototype.hw_stalled = function() {
 RTLSDR.prototype.hw_setParam = function(parSetting, callback) {
     // create the 5-byte command and send it to the socket
     var cmdBuf = new Buffer(5);
+    var par = parSetting.par, val = parSetting.val;
+
+    // fix up any parameter values to match rtl_tcp semantics
+
+    switch (par) {
+    case "frequency":
+        // convert from MHz to Hz
+        val = Math.round(val * 1.0E6);
+        break;
+    case "tuner_gain":
+        // convert from dB to 0.1 dB
+        val = Math.round(val * 10);
+        break;
+    case "if_gain1":
+    case "if_gain2":
+    case "if_gain3":
+    case "if_gain4":
+    case "if_gain5":
+    case "if_gain6":
+        // encode gain stage in upper 16 bits of value, convert dB to 0.1 dB in lower 16 bits
+        val = par.substr(7) << 16 + Math.round(val * 10);
+        break;
+    }
     var cmdNo = this.rtltcpCmds[parSetting.par];
     if (cmdNo && this.cmdSock) {
+//        console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
         cmdBuf.writeUInt8(cmdNo, 0);
-        cmdBuf.writeUInt32(parSetting.val, 1);
-        cmdSock.write(cmdBuf, callback);
+        cmdBuf.writeUInt32BE(val, 1); // note: rtl_tcp expects big-endian
+        this.cmdSock.write(cmdBuf, callback);
     };
 };
 

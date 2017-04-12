@@ -17,7 +17,7 @@ function quitProcess () {
     doneQuit = true;
     console.log("Exiting from master.js!\n");
     TheMatron.emit("quit");
-    setTimeout(function() {process.exit(0)}, 1000);
+    setTimeout(function() {process.exit(0)}, 3000);
 };
 
 process.on("SIGTERM", quitProcess);

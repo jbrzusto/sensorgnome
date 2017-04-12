@@ -39,7 +39,7 @@
                     "port": ".*",
                     "devType": "rtlsdr"
                 },
-                "rate": 50000,
+                "rate": 48000,
                 "channels": 2,
                 "schedule": {
                     "type": "AlwaysOn"
@@ -51,6 +51,152 @@
                             "type": "Constant",
                             "value": 166.376
                         }
+                    },
+//                    {
+//                        "name": "gain_mode",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 1
+//                        }
+//                    },
+//                    {
+//                        "name": "tuner_gain",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 100
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain1",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 30
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain2",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 30
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain3",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 1
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain4",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 1
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain5",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 1
+//                        }
+//                    },
+//                    {
+//                        "name": "if_gain6",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 1
+//                        }
+//                    },
+                    {
+                        "name": "test_mode",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 0
+                        }
+                    }
+//                    {
+//                        "name": "agc_mode",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    },
+//                    {
+//                        "name": "direct_sampling",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    },
+//                    {
+//                        "name": "offset_tuning",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    },
+//                    {
+//                        "name": "rtl_xtal",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    },
+//                    {
+//                        "name": "tuner_xtal",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    },
+//                    {
+//                        "name": "tuner_gain_index",
+//                        "schedule": {
+//                            "type": "Constant",
+//                            "value": 0
+//                        }
+//                    }
+                ],
+                "raw": {
+                    "enabled": false,
+                    "chunkMinutes": 0.5
+                },
+                "plugins": [
+                    {
+                        "library": "lotek-plugins.so",
+                        "name": "findpulsefdbatch",
+                        "outputID": "pulses",
+                        "params": [
+                            {
+                                "name": "plen",
+                                "value": 2.5
+                            },
+                            {
+                                "name": "minfreq",
+                                "value": 2
+                            },
+                            {
+                                "name": "maxfreq",
+                                "value": 8
+                            },
+                            {
+                                "name": "fftsize",
+                                "value": 24
+                            },
+                            {
+                                "name": "minsnr",
+                                "value": 10
+                            },
+                            {
+                                "name": "noisesize",
+                                "value": 5
+                            },
+                            {
+                                "name": "pulsesep",
+                                "value": 1
+                            }
+                        ]
                     }
                 ]
             },
@@ -129,6 +275,22 @@
                             {
                                 "name": "maxfreq",
                                 "value": 8
+                            },
+                            {
+                                "name": "fftsize",
+                                "value": 24
+                            },
+                            {
+                                "name": "minsnr",
+                                "value": 6
+                            },
+                            {
+                                "name": "noisesize",
+                                "value": 5
+                            },
+                            {
+                                "name": "pulsesep",
+                                "value": 1
                             }
                         ]
                     }
@@ -190,7 +352,7 @@
                     "type": "AlwaysOn"
                 },
                 "raw": {
-                    "enabled": true,
+                    "enabled": false,
                     "chunkMinutes": 0.5
                 }
             }

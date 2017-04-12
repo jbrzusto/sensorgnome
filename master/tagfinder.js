@@ -42,7 +42,7 @@ TagFinder.prototype.childDied = function(code, signal) {
         this.matron.removeListener("vahData", this.this_gotInput);
         this.matron.removeListener("setParam", this.this_gotParamInput);
         if (! this.quitting) {
-            setTimeout(this.this_spawnChild, 30000);
+            setTimeout(this.this_spawnChild, 5000);
         }
         this.inDieHandler = false;
     }
@@ -55,7 +55,7 @@ TagFinder.prototype.spawnChild = function() {
     var child = ChildProcess.spawn(this.prog, this.params.concat("-c", "8", this.tagFile))
         .on("exit", this.this_childDied)
         .on("error", this.this_childDied);
-        
+
     child.stdout.on("data", this.this_gotOutput);
     child.stdout.on("error", this.ignore);
     child.stdin.on("error", this.ignore);
