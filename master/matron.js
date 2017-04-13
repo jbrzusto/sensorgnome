@@ -8,13 +8,15 @@
 
 Matron = function() {
     var self = this;
-    this.devices = [];
+    this.devices = {};
 
     // callback closures
     this.this_devAdded = this.devAdded.bind(this);
+    this.this_devRemoved = this.devRemoved.bind(this);
     this.this_VAHdied = this.VAHdied.bind(this);
 
     this.on("devAdded", this.this_devAdded);
+    this.on("devRemoved", this.this_devRemoved);
     this.on("bad", function(msg) {console.log(msg + "\n");});
     this.on("VAHdied", this.this_VAHdied);
 };
@@ -26,8 +28,14 @@ Matron.prototype.devAdded = function(dev) {
     var devPlan = Deployment.lookup(dev.attr.port, dev.attr.type);
     if (devPlan) {
 // DEBUG:        console.log("Got plan " + JSON.stringify(devPlan));
-        this.devices.push(Sensor.getSensor(this, dev, devPlan));
+        this.devices[dev.attr.port] = Sensor.getSensor(this, dev, devPlan);
     }
+};
+
+Matron.prototype.devRemoved = function(dev) {
+    if (this.devices[dev.attr.port]) {
+        this.devices[dev.attr.port] = null;
+    };
 };
 
 Matron.prototype.VAHdied = function() {

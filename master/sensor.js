@@ -29,6 +29,7 @@ Sensor = function(matron, dev, devPlan) {
     this.rawFiling = false;  // are we supposed to be recording raw files?
 
     // callback closures
+    this.this_init                   = this.init.bind(this);
     this.this_initDone               = this.initDone.bind(this);
     this.this_devRemoved             = this.devRemoved.bind(this);
     this.this_devStalled             = this.devStalled.bind(this);
@@ -62,14 +63,14 @@ getSensor = function(matron, dev, devPlan) {
         rv = null;
     }
     if (rv)
-        setTimeout(rv.init.bind(rv), 250);
+        setTimeout(rv.this_init, 250);
     return(rv);
 };
 
 Sensor.prototype.devRemoved = function(dev) {
     if (dev.path != this.dev.path)
         return;
-    this.startStop("off", null, this);
+//    this.startStop("off", null, this);
     this.matron.removeListener("devRemoved", this.this_devRemoved);
     this.matron.removeListener("devStalled", this.this_devStalled);
     this.matron.removeListener("requestSetParam", this.this_requestSetParam);
@@ -77,7 +78,14 @@ Sensor.prototype.devRemoved = function(dev) {
     if (this.schedules != undefined)
         for (var i in this.schedules)
             this.schedules[i].stop();
+
     this.hw_delete();
+    var plugins = this.plan.plugins;
+    for (var i in plugins) {
+        var plugin = plugins[i];
+        this.matron.emit("vahSubmit", "detach " + this.getPluginLabel(plugin.letter));
+    }
+    this.matron.emit("vahSubmit", "close " + this.dev.attr.port);
 };
 
 Sensor.prototype.devStalled = function(vahDevLabel) {
@@ -87,7 +95,10 @@ Sensor.prototype.devStalled = function(vahDevLabel) {
 
 Sensor.prototype.init = function() {
     // open (without starting) the device
-    this.hw_init(this.this_initDone);
+    if (this.hw_init)
+        this.hw_init(this.this_initDone);
+    else
+        console.log("Weird - got to Sensor.prototype.init with no hw_init method");
 };
 
 Sensor.prototype.initDone = function() {
@@ -99,7 +110,7 @@ Sensor.prototype.vahOpenReply = function (reply, self) {
     if (reply.error) {
         // schedule a retry on this device (every 10 seconds up to 10 times)
         if (++self.numOpenRetries < 10) {
-            setTimeout (self.init, 10000, self);
+            setTimeout (self.this_init, 10000);
         } else {
             self.matron.emit("bad", "Unable to open VAH device: " + JSON.stringify(self.dev));
         }
@@ -245,7 +256,7 @@ Sensor.prototype.setParamReply = function(parSetting, code, stdout, stderr) {
         parSetting.err = "";
     } else {
         parSetting.errCode = code;
-        parSetting.err = error;
+        parSetting.err = stderr;
     };
     this.matron.emit("setParam", parSetting);
 };

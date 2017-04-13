@@ -46,6 +46,7 @@ RTLSDR = function(matron, dev, devPlan) {
     }
 
     // callback closures
+    this.this_VAHdied          = this.VAHdied.bind(this);
     this.this_serverDied       = this.serverDied.bind(this);
     this.this_cmdSockConnected = this.cmdSockConnected.bind(this);
     this.this_connectCmd       = this.connectCmd.bind(this);
@@ -54,6 +55,8 @@ RTLSDR = function(matron, dev, devPlan) {
     this.this_cmdSockClose     = this.cmdSockClose.bind(this);
     this.this_cmdSockEnd       = this.cmdSockEnd.bind(this);
     this.this_spawnServer      = this.spawnServer.bind(this);
+
+    this.matron.on("VAHdied", this.this_VAHdied);
 
 };
 
@@ -111,14 +114,21 @@ RTLSDR.prototype.spawnServer = function() {
     if (this.quitting)
         return;
     this.cmdSock = null;
-//    console.log("about to delete command socket with path: " + this.sockPath + "\n");
+console.log("about to delete command socket with path: " + this.sockPath + "\n");
     try {
         // Note: node throws on this call if this.sockPath doesn't exist;
         Fs.unlinkSync(this.sockPath);
     } catch (e)
     {};
-//    console.log("RTLSDR about to spawn server\n");
-    var server = ChildProcess.spawn(this.prog, ["-p", this.sockPath, "-d", this.dev.attr.usbPath, "-s", this.hw_rate]);
+
+    // set the libusb buffer size so it holds approximately 100 ms of I/Q data
+    // We round up to the nearest multiple of 512 bytes, as required by libusb
+
+    var usb_buffer_size = this.hw_rate * 2 * 0.100;
+    usb_buffer_size = 512 * Math.ceil(usb_buffer_size / 512.0);
+
+    console.log("RTLSDR about to spawn server\n");
+    var server = ChildProcess.spawn(this.prog, ["-p", this.sockPath, "-d", this.dev.attr.usbPath, "-s", this.hw_rate, "-B", usb_buffer_size]);
     server.on("exit", this.this_serverDied);
     server.on("error", this.this_serverDied);
     server.stdout.on("data", this.this_serverReady);
@@ -137,7 +147,7 @@ RTLSDR.prototype.connectCmd = function() {
     if (this.cmdSock) {
         return;
     }
-//    console.log("about to connect command socket with path: " + this.sockPath + "\n");
+console.log("about to connect command socket with path: " + this.sockPath + "\n");
     this.cmdSock = Net.connect(this.sockPath, this.this_cmdSockConnected);
     this.cmdSock.on("error" , this.this_cmdSockError);
     this.cmdSock.on("end"   , this.this_cmdSockEnd);
@@ -193,8 +203,12 @@ RTLSDR.prototype.cmdSockConnected = function() {
     }
 };
 
+RTLSDR.prototype.VAHdied = function() {
+    this.hw_delete();
+};
+
 RTLSDR.prototype.serverDied = function(code, signal) {
-//    console.log("rtl_tcp server died\n")
+console.log("rtl_tcp server died\n")
     if (this.inDieHandler)
         return;
     this.inDieHandler = true;
@@ -221,6 +235,7 @@ RTLSDR.prototype.serverDied = function(code, signal) {
 };
 
 RTLSDR.prototype.hw_delete = function() {
+    console.log("rtlsdr::hw_delete");
     if (this.server)
         this.server.kill("SIGKILL");
     this.server = null;
@@ -264,7 +279,7 @@ RTLSDR.prototype.hw_setParam = function(parSetting, callback) {
     }
     var cmdNo = this.rtltcpCmds[parSetting.par];
     if (cmdNo && this.cmdSock) {
-//        console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
+console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
         cmdBuf.writeUInt8(cmdNo, 0);
         cmdBuf.writeUInt32BE(val, 1); // note: rtl_tcp expects big-endian
         this.cmdSock.write(cmdBuf, callback);
