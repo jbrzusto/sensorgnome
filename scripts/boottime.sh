@@ -8,9 +8,12 @@
 # ensure we have /dev/sensorgnome, whose existence is required
 # for the master process to work.  It is automatically created
 # when USB devices are attached, but otherwise would not exist,
-# so we make sure to do that here.
+# so we make sure to do that here.  Moreover, we make sure
+# to create a usb subdirectory, so that even if every device
+# is removed, the /dev/sensorgnome directory does not disappear,
+# which would break hubman.js's Fs.watch() of it.
 
-mkdir /dev/sensorgnome
+mkdir -p /dev/sensorgnome/usb
 
 # make sure the DOS boot partition of the boot SD disk (internal flash
 # disk or microSD card on beaglebone black; microSD card on beaglebone white)
@@ -38,7 +41,7 @@ fi
 #   might contain real data.
 
 for dir in /media/disk*port*; do
-    if ( ! ( mount -l | grep -q " on $dir " ) ); then 
+    if ( ! ( mount -l | grep -q " on $dir " ) ); then
         if [ "$(ls -A $dir 2> /dev/null)" == "" ]; then
             rmdir $dir
         fi
@@ -60,12 +63,12 @@ sync
 /home/pi/proj/sensorgnome/scripts/update_software.sh
 
 # if there's a network.txt file on the boot drive, read the essid and pass phrase
-if [[ -f /boot/uboot/network.txt ]]; then 
+if [[ -f /boot/uboot/network.txt ]]; then
     /home/pi/proj/sensorgnome/scripts/getnetwork
 fi
 
 # If this SG is not yet registered, then add an appropriate entry to
-# the system crontab vi /etc/cron.d 
+# the system crontab vi /etc/cron.d
 # Successful registration will delete that file.
 
 UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
@@ -73,4 +76,3 @@ UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
 if [[ ! -f $UNIQUE_KEY_FILE ]]; then
     echo '* * *    *   *   root  /home/pi/proj/sensorgnome/scripts/register_sg' > /etc/cron.d/register_sg
 fi
-
