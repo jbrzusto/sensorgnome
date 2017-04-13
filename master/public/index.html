@@ -27,10 +27,10 @@
       I have been running for <span id="uptime">.<blink>.</blink>.</span> since the last restart.
       <div id="GPSfix" style="display:none">
         <p>
-          I am located at 
+          I am located at
           &nbsp; <span id="gpslat">.<blink>.</blink>.</span>
           &nbsp; &nbsp;  <span id="gpslong">.<blink>.</blink>.</span>
-          &nbsp; &nbsp;  <span id="gpsalt"> .<blink>.</blink>.</span> 
+          &nbsp; &nbsp;  <span id="gpsalt"> .<blink>.</blink>.</span>
           <button type="button" onclick="socket.emit('gpsfix');">Update GPS fix</button>
       </div>
     <p>
@@ -40,7 +40,7 @@
         <b> Set SensorGnome Clock to Your Computer's Clock</b>
         <br>
         <br>
-        I don't seem to have a GPS attached, but if my date/time are wrong, I can copy them from your computer: 
+        I don't seem to have a GPS attached, but if my date/time are wrong, I can copy them from your computer:
         <br>
         <br>
         <button type="button" onclick="socket.emit('setclock', (new Date()).getTime()/1000.0);">Set SensorGnome Clock from This Computer</button>
@@ -59,7 +59,7 @@
               <textarea id="datalog" rows=10 cols=65 readonly></textarea>
             </div>
           </td>
-          <td>  
+          <td>
             <div id="livetag" >
               <b> Live Known Tags </b>
               <br>
@@ -78,6 +78,7 @@
           <td>
             <button type="button" onclick="$('#datalog').text('')"> Clear Window </button>
             <input id="datalogAutoscroll" type="checkbox" name="autoscroll" value="yes" checked> Scroll to latest pulses </input>
+            <input id="datalogAbsFreq" type="checkbox"> Absolute frequency (MHz) </input>
           </td>
           <td>
             <button type="button" onclick="$('#taglog').text('')"> Clear Window </button>
@@ -90,7 +91,7 @@
         </tr>
         <tr>
           <td></td>
-          <td>          
+          <td>
             <b>Note: </b> only shows tags known to <b>this</b> SensorGnome - see <a href="#tagDB">Tag Database</a> below.
           </td>
           <td></td>
@@ -118,15 +119,15 @@
           <ul id="devinfo" style='list-style-type:none'>
           </ul>
       </div>
-      
+
       <button id="devListRefresh" type="button" onclick="$('#devListRefresh').text('..Getting Device List..');$('#devList').css('display', 'inline');socket.emit('devinfo')"> Show Device List</button>
       <hr>
       <br>
-      
+
       <div id="dataFiles">
         <b> Files I have recorded:</b>
         <br>
-        <p> The following are available via a Windows shared drive at <b>\\192.168.7.2\data</b> : 
+        <p> The following are available via a Windows shared drive at <b>\\192.168.7.2\data</b> :
           <textarea id="lsDataFiles" rows=20 cols=160 readonly></textarea>
           <br>
           <button id="lsDataFilesRefresh" type="button" onclick="$('#lsDataFilesRefresh').text('..refreshing..');lsDataFilesScrollTop=$('#lsDataFiles')[0].scrollTop;socket.emit('lsdata')">Refresh File Listing</button>
@@ -182,5 +183,3 @@
       </div>
   </body>
 </html>
-
-

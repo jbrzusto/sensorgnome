@@ -82,10 +82,11 @@ var sensorgnomeInit = function() {
                 if (hit.length == 5) {
                     line += (new Date(parseFloat(hit[1]) * 1000)).toISOString().replace(/[ZT]/g," ").substr(11);
                     var port = parseInt(hit[0].substr(1));
-                    if (devList[port])
-                        line += hit[0] + " @" + Math.round(1000*(devList[port].realFreq + hit[2]/1000))/1000 + " MHz " + hit[3] +" / " + hit[4] + " dB\n";
-                    else
-                        line += hit[0] + " @???.??? MHz " + hit[3] +" / " + hit[4] + " dB\n";
+                    var freq = hit[2];
+                    var absFreq = $("#datalogAbsFreq")[0].checked && devList[port];
+                    if (absFreq)
+                        freq = devList[port].realFreq + freq/1000;
+                    line += hit[0] + " " + Math.round(1000*freq)/1000 + (absFreq ? " MHz " : " kHz ") + hit[3] +" / " + hit[4] + " dB\n";
                 }
             }
             elt.append(line);
