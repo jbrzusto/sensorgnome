@@ -129,7 +129,7 @@ HubMan = function(matron, root) {
         // restarts, we'll re-enumerate
         var i = 0;
         while (i < devs.length) {
-            if (devs[i] && devs[i].attr.type.match(/funcube|usbAudio/)) {
+            if (devs[i] && devs[i].attr.type.match(/funcube|usbAudio|rtlsdr/)) {
                 devs.splice(i);
             } else {
                 ++i;
