@@ -130,7 +130,7 @@ var sensorgnomeInit = function() {
                 return;
             var line = (new Date(Math.round(data.time * 10) * 100)).toISOString().replace(/[ZT]/g," ").substr(11, 21);
             line += "ant " + data.port;
-            if (data.par == "-m") {
+            if (data.par == "-m" || data.par == "frequency") {
                 freq_mhz = Math.round(data.val*1000)/1000 + " MHz";
                 line += " @ " +  freq_mhz + "\n";
                 $("#fcd_freq" + data.port).text(freq_mhz);
