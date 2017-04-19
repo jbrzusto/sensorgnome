@@ -42,7 +42,7 @@ USBAudio.prototype.paramNameTables = {
         bias_tee:   ["-w", "0x10"]
     },
 
-    funcubeProOptions:
+    funcubePro:
     {
         // options to the fcd parameter setting program for FCD Pro
         frequency:    "-m",
