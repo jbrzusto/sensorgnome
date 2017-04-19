@@ -40,7 +40,7 @@ function listenToRaw(n) {
 function setFreq(n) {
     if (socket) {
         var freq = parseFloat($('#set_freq_button' + n)[0].value);
-        socket.emit("clientSetParam", {port:n, par:"-m", val:freq});
+        socket.emit("clientSetParam", {port:n, par:"frequency", val:freq});
     }
 };
 
