@@ -47,6 +47,7 @@ function setFreq(n) {
 var socket;
 var VAHstatus;
 var devList=[];
+var devCache={};
 var GPS;
 var tagBuf=[];
 var VAHBuf=[];
@@ -133,8 +134,11 @@ var sensorgnomeInit = function() {
             if (data.par == "-m" || data.par == "frequency") {
                 freq_mhz = Math.round(data.val*1000)/1000 + " MHz";
                 line += " @ " +  freq_mhz + "\n";
-                $("#fcd_freq" + data.port).text(freq_mhz);
-                devList[data.port].realFreq=data.val;
+                if (devList[data.port]) {
+                    $("#radio_freq" + data.port).text(freq_mhz);
+                    devList[data.port].realFreq=data.val;
+                }
+                devCache[data.port] = {freq_mhz: freq_mhz, val: data.val};
             } else {
                 line += " set " + data.par + " = " + data.val + "\n"
             }
@@ -185,11 +189,17 @@ var sensorgnomeInit = function() {
                     }
                     break;
                 case "rtlsdr":
-                    txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + '<span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
+                    if (devCache[slot]) {
+                        d["frequency"] = devCache[slot].freq_mhz;
+                    }
+                    txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
                     txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
                     break;
                 case "fcd":
-                    txt = d["name"] + ' tuned to <a id="fcd_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
+                    if (devCache[slot]) {
+                        d["frequency"] = devCache[slot].freq_mhz;
+                    }
+                    txt = d["name"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
                     txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
                     d.realFreq = parseFloat(d.frequency);
                     break;
