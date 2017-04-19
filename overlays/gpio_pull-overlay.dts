@@ -1,0 +1,38 @@
+/* gpio pin-setting overlay, courtesy of
+
+   http://stackoverflow.com/questions/33626480/raspberry-pi-gpio-pull-up-down-resistors-with-sysfs#33675068
+
+We use GPIO 17 as power for the pushbutton LED, and 18 as the pushbutton sensor,
+which requires enabling its internal pull-up resistor.
+
+*/
+
+/dts-v1/;
+/plugin/;
+/ {
+  compatible = "brcm,bcm2835", "brcm,bcm2708";
+  fragment@0 {
+    target = <&gpio>;
+    __overlay__ {
+       gpio_pins: gpio_pins {
+          brcm,pins = <17 18>; /* list of gpio(n) pins to pull */
+          brcm,function = <1 0>; /* boot up direction:in=0 out=1 */
+          brcm,pull = <0 2>; /* pull direction: none=0, 1 = down, 2 = up */
+       };
+    };
+  };
+  fragment@1 {
+    target-path = "/soc";
+    __overlay__ {
+       gpiopull:gpiopull {
+          compatible = "gpio-leds";
+          pinctrl-names = "default";
+          pinctrl-0 = <&gpio_pins>;
+          status = "okay";
+       };
+    };
+  };
+  __overrides__ {
+     gpio_pull = <&gpiopull>,"status";
+  };
+};

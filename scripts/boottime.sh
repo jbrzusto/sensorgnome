@@ -15,6 +15,15 @@
 
 mkdir -p /dev/sensorgnome/usb
 
+# export gpio pins for use with the adafruit pushbutton LED switch
+# (see ../overlays/Makefile)
+
+cd /sys/class/gpio
+echo 17 > export
+echo out > gpio17/direction
+echo 0 > gpio17/value
+echo 18 > export
+
 # make sure the DOS boot partition of the boot SD disk (internal flash
 # disk or microSD card on beaglebone black; microSD card on beaglebone white)
 # is mounted at /mnt/boot
