@@ -48,6 +48,7 @@ RTLSDR = function(matron, dev, devPlan) {
     // callback closures
     this.this_VAHdied          = this.VAHdied.bind(this);
     this.this_serverDied       = this.serverDied.bind(this);
+    this.this_serverError      = this.serverError.bind(this);
     this.this_cmdSockConnected = this.cmdSockConnected.bind(this);
     this.this_connectCmd       = this.connectCmd.bind(this);
     this.this_serverReady      = this.serverReady.bind(this);
@@ -130,14 +131,14 @@ console.log("about to delete command socket with path: " + this.sockPath + "\n")
     console.log("RTLSDR about to spawn server\n");
     var server = ChildProcess.spawn(this.prog, ["-p", this.sockPath, "-d", this.dev.attr.usbPath, "-s", this.hw_rate, "-B", usb_buffer_size]);
     server.on("exit", this.this_serverDied);
-    server.on("error", this.this_serverDied);
+    server.on("error", this.this_serverError);
     server.stdout.on("data", this.this_serverReady);
     this.server = server;
 };
 
 RTLSDR.prototype.serverReady = function(data) {
     if (data.toString().match(/Listening/)) {
-        this.server.stderr.removeListener("data", this.this_serverReady);
+        this.server.stdout.removeListener("data", this.this_serverReady);
         this.connectCmd();
     }
 };
@@ -205,6 +206,10 @@ RTLSDR.prototype.cmdSockConnected = function() {
 
 RTLSDR.prototype.VAHdied = function() {
     this.hw_delete();
+};
+
+RTLSDR.prototype.serverError = function(err) {
+    console.log("rtl_tcp server got error:\n" + JSON.stringify(err) + "\n")
 };
 
 RTLSDR.prototype.serverDied = function(code, signal) {
