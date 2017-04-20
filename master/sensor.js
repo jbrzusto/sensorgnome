@@ -68,7 +68,7 @@ getSensor = function(matron, dev, devPlan) {
 };
 
 Sensor.prototype.devRemoved = function(dev) {
-    if (dev.path != this.dev.path)
+    if (dev && dev.path != this.dev.path)
         return;
 //    this.startStop("off", null, this);
     this.matron.removeListener("devRemoved", this.this_devRemoved);
