@@ -242,7 +242,7 @@ console.log("rtl_tcp server died\n")
 RTLSDR.prototype.hw_delete = function() {
     console.log("rtlsdr::hw_delete");
     if (this.server)
-        this.server.kill("SIGKILL");
+        this.server.kill("SIGINT");
     this.server = null;
 };
 
