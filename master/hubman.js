@@ -84,12 +84,14 @@ HubMan = function(matron, root) {
 //            console.log("hubman.js got error: " + e.toString());
             if (devs[port]) {
                 matron.emit("devRemoved", devs[port]);
+                console.log("Removed " + JSON.stringify(devs[port]));
                 devs[port] = null;
             }
             return;
         }
         if (! devs[port]) {
             devs[port] = {path:path, attr:attr, stat:stat};
+            console.log("Added " + JSON.stringify(devs[port]));
             matron.emit("devAdded", devs[port]);
         }
     };

@@ -33,6 +33,7 @@ VAH = function(matron, prog, sockName) {
 
     // callback closures
     this.this_childDied        = this.childDied.bind(this);
+    this.this_logChildError    = this.logChildError.bind(this);
     this.this_cmdSockConnected = this.cmdSockConnected.bind(this);
     this.this_connectCmd       = this.connectCmd.bind(this);
     this.this_connectData      = this.connectData.bind(this);
@@ -99,6 +100,7 @@ VAH.prototype.spawnChild = function() {
     child.on("exit", this.this_childDied);
     child.on("error", this.this_childDied);
     child.stdout.on("data", this.this_serverReady);
+    child.stderr.on("data", this.this_logChildError);
     this.child = child;
 };
 
@@ -116,6 +118,10 @@ VAH.prototype.serverReady = function(data) {
     this.connectCmd();
     this.connectData();
     this.matron.emit("VAHstarted");
+};
+
+VAH.prototype.logChildError = function(data) {
+    console.log("VAH child got error: " + data.toString() + "\n");
 };
 
 VAH.prototype.connectCmd = function() {
