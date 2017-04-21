@@ -167,6 +167,9 @@ function onDevinfo (data) {
         $('#devinfo').append("<li><b>Internal:</b> micro SD card with size = " + (isd["size"] * 1024 / 1e9).toFixed() + "GB;   Used = " + isd["used_percent"] + "</li>");
     }
 
+    if (devList.storage) {
+        $("#storageSummary").text(devList.storage);
+    };
     var gotGPS = false;
     for (var slot = -1; slot <= 10; ++slot) {
         if (! devList[slot])

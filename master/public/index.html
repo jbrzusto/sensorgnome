@@ -118,6 +118,10 @@
           <br>
           <ul id="devinfo" style='list-style-type:none'>
           </ul>
+          <br>
+          <b> Mounted Storage</b>
+          <pre id="storageSummary">
+          </pre>
       </div>
 
       <button id="devListRefresh" type="button" onclick="$('#devListRefresh').text('..Getting Device List..');$('#devList').css('display', 'inline');socket.emit('devinfo')"> Show Device List</button>
