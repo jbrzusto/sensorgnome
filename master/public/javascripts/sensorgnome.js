@@ -47,7 +47,6 @@ function setFreq(n) {
 var socket;
 var VAHstatus;
 var devList=[];
-var devCache={};
 var GPS;
 var tagBuf=[];
 var VAHBuf=[];
@@ -81,9 +80,9 @@ function onNewVahData (data) {
             var port = parseInt(hit[0].substr(1));
             var freq = hit[2];
             var absFreq = $("#datalogAbsFreq")[0].checked && devList[port];
-            if (absFreq)
-                freq = devList[port].realFreq + freq/1000;
-            line += hit[0] + " " + Math.round(1000*freq)/1000 + (absFreq ? " MHz " : " kHz ") + hit[3] +" / " + hit[4] + " dB\n";
+            if (absFreq && devList[port].settings)
+                freq = devList[port].settings.frequency / 1.0E6 + freq/1000;
+            line += hit[0] + " " + Math.round(1000000*freq)/1000000 + (absFreq ? " MHz " : " kHz ") + hit[3] +" / " + hit[4] + " dB\n";
         }
     }
     elt.append(line);
@@ -128,13 +127,14 @@ function onGotParam (data) {
     var line = (new Date(Math.round(data.time * 10) * 100)).toISOString().replace(/[ZT]/g," ").substr(11, 21);
     line += "ant " + data.port;
     if (data.par == "-m" || data.par == "frequency") {
-        freq_mhz = Math.round(data.val*1000)/1000 + " MHz";
+        freq_mhz = Math.round(data.val*1000000)/1000000 + " MHz";
         line += " @ " +  freq_mhz + "\n";
         if (devList[data.port]) {
             $("#radio_freq" + data.port).text(freq_mhz);
-            devList[data.port].realFreq=data.val;
         }
-        devCache[data.port] = {freq_mhz: freq_mhz, val: data.val};
+        if (! devList[data.port].settings)
+            devList[data.port].settings = {};
+        devList[data.port].settings.frequency = data.val;
     } else {
         line += " set " + data.par + " = " + data.val + "\n"
     }
@@ -159,7 +159,7 @@ function onGpsfix (data) {
 };
 
 function onDevinfo (data) {
-    devList = JSON.parse(data);
+    devList = data;
     $('#devinfo').empty();
 
     var isd = devList["internal_SD"];
@@ -185,19 +185,18 @@ function onDevinfo (data) {
             }
             break;
         case "rtlsdr":
-            if (devCache[slot]) {
-                d["frequency"] = devCache[slot].freq_mhz;
+            if (devList[slot].settings && devList[slot].settings.frequency) {
+                d["frequency"] = devList[slot].settings.frequency / 1.0e6;
             }
             txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
             txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
             break;
         case "fcd":
-            if (devCache[slot]) {
-                d["frequency"] = devCache[slot].freq_mhz;
+            if (devList[slot].settings && devList[slot].settings.frequency) {
+                d["frequency"] = devList[slot].settings.frequency / 1.0e6;
             }
             txt = d["name"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
             txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
-            d.realFreq = parseFloat(d.frequency);
             break;
         case "gps":
             txt = d["name"];

@@ -11,11 +11,16 @@
 
   Most of the work is done by a modified version of rtl_tcp, to which
   we establish two half-duplex connections.  rtl_tcp listens to the
-  first for commands to start/stop streaming and set tuning and filtering
-  parameters.  rtl_tcp sends streamed samples down the second connection.
-  The first connection is from nodejs, running this module.
+  first for commands to start/stop streaming and set tuning and
+  filtering parameters.  rtl_tcp sends streamed samples down the
+  second connection.  The first connection is from nodejs, running
+  this module.  Commands are sent to that connection, and it replies
+  with a JSON-formatted list of current parameter settings.
+
   The second connection is opened by vamp-alsa-host, after we ask it
-  to "open" the rtlsdr device.
+  to "open" the rtlsdr device.  We watch for the death of vamp-alsa-host
+  in which case we need to restart rtl_tcp, since its only handles
+  two connections and dies after noticing either has closed.
 
 */
 
@@ -46,6 +51,8 @@ RTLSDR = function(matron, dev, devPlan) {
     }
 
     // callback closures
+    this.this_gotCmdReply      = this.gotCmdReply.bind(this);
+    this.this_logServerError   = this.logServerError.bind(this);
     this.this_VAHdied          = this.VAHdied.bind(this);
     this.this_serverDied       = this.serverDied.bind(this);
     this.this_serverError      = this.serverError.bind(this);
@@ -57,8 +64,15 @@ RTLSDR = function(matron, dev, devPlan) {
     this.this_cmdSockEnd       = this.cmdSockEnd.bind(this);
     this.this_spawnServer      = this.spawnServer.bind(this);
 
+    // handle situation where program owning other connection to rtl_tcp dies
     this.matron.on("VAHdied", this.this_VAHdied);
 
+    // storage for the setting list sent by rtl_tcp
+    this.replyBuf = ""; // buffer the reply stream, in case it crosses transmission unit boundaries
+
+    // rtl_tcp replies with a 12-byte header, before real command replies; we ignore this
+    // as the info is available elsewhere
+    this.gotCmdHeader = false;
 };
 
 RTLSDR.prototype = Object.create(Sensor.Sensor.prototype);
@@ -115,7 +129,7 @@ RTLSDR.prototype.spawnServer = function() {
     if (this.quitting)
         return;
     this.cmdSock = null;
-console.log("about to delete command socket with path: " + this.sockPath + "\n");
+    console.log("about to delete command socket with path: " + this.sockPath + "\n");
     try {
         // Note: node throws on this call if this.sockPath doesn't exist;
         Fs.unlinkSync(this.sockPath);
@@ -133,6 +147,7 @@ console.log("about to delete command socket with path: " + this.sockPath + "\n")
     server.on("exit", this.this_serverDied);
     server.on("error", this.this_serverError);
     server.stdout.on("data", this.this_serverReady);
+    server.stderr.on("data", this.this_logServerError);
     this.server = server;
 };
 
@@ -148,18 +163,18 @@ RTLSDR.prototype.connectCmd = function() {
     if (this.cmdSock) {
         return;
     }
-console.log("about to connect command socket with path: " + this.sockPath + "\n");
+    console.log("about to connect command socket with path: " + this.sockPath + "\n");
     this.cmdSock = Net.connect(this.sockPath, this.this_cmdSockConnected);
     this.cmdSock.on("error" , this.this_cmdSockError);
     this.cmdSock.on("end"   , this.this_cmdSockEnd);
     this.cmdSock.on("close" , this.this_cmdSockClose);
-//    this.cmdSock.on("data"  , this.this_gotCmdReply);
+    this.cmdSock.on("data"  , this.this_gotCmdReply);
 };
 
 RTLSDR.prototype.cmdSockError = function(e) {
-    console.log("Got command socket error " + e.toString() + "\n");
     if (! e)
         return;
+    console.log("Got command socket error " + e.toString() + "\n");
     if (this.cmdSock) {
         this.cmdSock.destroy();
         this.cmdSock = null;
@@ -170,9 +185,9 @@ RTLSDR.prototype.cmdSockError = function(e) {
 };
 
 RTLSDR.prototype.cmdSockEnd = function(e) {
-    console.log("Got command socket end " + e.toString() + "\n");
     if (! e)
         return;
+    console.log("Got command socket end " + e.toString() + "\n");
     if (this.cmdSock) {
         this.cmdSock.destroy();
         this.cmdSock = null;
@@ -183,9 +198,9 @@ RTLSDR.prototype.cmdSockEnd = function(e) {
 };
 
 RTLSDR.prototype.cmdSockClose = function(e) {
-    console.log("Got command socket close " + e.toString() + "\n");
     if (!e )
         return;
+    console.log("Got command socket close " + e.toString() + "\n");
     if (this.cmdSock) {
         this.cmdSock.destroy();
         this.cmdSock = null;
@@ -213,7 +228,7 @@ RTLSDR.prototype.serverError = function(err) {
 };
 
 RTLSDR.prototype.serverDied = function(code, signal) {
-console.log("rtl_tcp server died\n")
+    console.log("rtl_tcp server died\n")
     if (this.inDieHandler)
         return;
     this.inDieHandler = true;
@@ -284,11 +299,40 @@ RTLSDR.prototype.hw_setParam = function(parSetting, callback) {
     }
     var cmdNo = this.rtltcpCmds[parSetting.par];
     if (cmdNo && this.cmdSock) {
-console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
+//        console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
         cmdBuf.writeUInt8(cmdNo, 0);
         cmdBuf.writeUInt32BE(val, 1); // note: rtl_tcp expects big-endian
         this.cmdSock.write(cmdBuf, callback);
     };
+};
+
+RTLSDR.prototype.logServerError = function(data) {
+    console.log("rtl_tcp got error: " + data.toString() + "\n");
+};
+
+RTLSDR.prototype.gotCmdReply = function(data) {
+
+    // rtl_tcp command replies are single JSON-formatted objects on a
+    // single line ending with '\n'.  Although the reply should fit in
+    // a single transmission unit, and so be completely contained in
+    // the 'data' parameter from a single call to this function, we
+    // play it safe and treat the replies as a '\n'-delimited stream
+    // of JSON strings, parsing each complete string into
+    // this.dev.settings
+
+    // skip the 12 byte header
+    this.replyBuf += data.toString('utf8', this.gotCmdHeader ? 0 : 12);
+    this.gotCmdHeader = true;
+    for(;;) {
+	var eol = this.replyBuf.indexOf("\n");
+	if (eol < 0)
+	    break;
+        var replyString = this.replyBuf.substring(0, eol);
+	this.replyBuf = this.replyBuf.substring(eol + 1);
+        var dev = HubMan.getDevs()[this.dev.attr.port];
+        if (dev)
+            dev.settings = JSON.parse(replyString);
+    }
 };
 
 exports.RTLSDR = RTLSDR;

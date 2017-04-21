@@ -51,7 +51,7 @@
 
 HubMan = function(matron, root) {
 
-    var devs = []; // port-number-indexed array of devices and their properties
+    var devs = {}; // port-number-indexed map of devices and their properties
 
     attrOf = function(filename) {
         // return the attributes
@@ -129,10 +129,9 @@ HubMan = function(matron, root) {
     this.VAHdied =  function() {
         // if VAH died, forget usbaudio and funcube devices; when VAH
         // restarts, we'll re-enumerate
-        var i = 0;
-        while (i < devs.length) {
+        for (var i in devs) {
             if (devs[i] && devs[i].attr.type.match(/funcube|usbAudio|rtlsdr/)) {
-                devs.splice(i);
+                delete devs[i];
             } else {
                 ++i;
             }

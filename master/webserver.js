@@ -133,7 +133,17 @@ WebServer.prototype.gotDevStatusForRawAudio = function (dev, reqres) {
 
 WebServer.prototype.pushDeviceInfo = function (err, stdout, stderr) {
     if (this.sock && !err) {
-	this.sock.emit('devinfo', stdout.toString());
+        // get basic info from the perl script (yuck!)
+        var info = JSON.parse(stdout.toString());
+        // splice in any ".settings" fields from HubMan
+        // FIXME: HubMan should be maintaining all of this
+
+        var devs = HubMan.getDevs();
+        for (d in devs) {
+            if (info[d])
+                info[d].settings = devs[d].settings
+        }
+	this.sock.emit('devinfo', info);
     }
 }
 
