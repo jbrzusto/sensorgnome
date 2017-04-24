@@ -1,6 +1,9 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/javascripts/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="/javascripts/jquery-ui.theme.css">
+    <link rel="stylesheet" type="text/css" href="/javascripts/jquery-ui.structure.css">
     <script>
       function loadScript (src, callback) {
          var script= document.createElement('script');
@@ -184,6 +187,23 @@
         <br>
         <button type="button" onclick="socket.emit('sgboot'); $('#rebootStatus').html('rebooting...')">Reboot this SensorGnome</button>
         <div id="rebootStatus"></div>
+      </div>
+      <div id="rtlsdrParams" style="display:none">
+        <h2> RTLSDR Parameters</h2>
+        <ul>
+          <li><b>frequency</b>: MHz</li>
+          <li><b>gains</b>: dB</li>
+          <li>green: new parameter setting accepted</li>
+          <li>red: new parameter setting failed</li>
+          <li>you can hit the <i>Enter</i> key instead of clicking on <b>Set</b></li>
+        </ul>
+
+        <p>
+          <table id="rtlsdrParamsTable">
+            <thead>
+              <tr><th>Name</th><th>Value</th><th>Set)</th></tr>
+            </thead>
+          </table>
       </div>
   </body>
 </html>

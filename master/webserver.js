@@ -47,6 +47,7 @@ function WebServer(matron) {
     this.this_requestedVAHStatus            = this.requestedVAHStatus.bind(this);
     this.this_requestedTagDB                = this.requestedTagDB.bind(this);
     this.this_requestedSetParam             = this.requestedSetParam.bind(this);
+    this.this_setParamError                 = this.setParamError.bind(this);
     this.this_requestedSetClock             = this.requestedSetClock.bind(this);
     this.this_softwareUpdateUploadCompleted = this.softwareUpdateUploadCompleted.bind(this);
     this.this_uploadSoftwareUpdate          = this.uploadSoftwareUpdate.bind(this);
@@ -263,12 +264,13 @@ WebServer.prototype.sendMachineInfo = function () {
 WebServer.prototype.clientDisconnected = function () {
     console.log("Got to client disconnected.\n");
     if (this.sock) {
-        this.matron.removeListener('gotGPSFix'  , this.this_pushGPSFix);
-        this.matron.removeListener('gotTag'     , this.this_pushTag);
-        this.matron.removeListener('setParam'   , this.this_pushParam);
-        this.matron.removeListener("devAdded"   , this.this_deviceInfoChanged);
-        this.matron.removeListener("devRemoved" , this.this_deviceInfoChanged);
-        this.matron.removeListener('vahData'    , this.this_pushData);
+        this.matron.removeListener('gotGPSFix'    , this.this_pushGPSFix);
+        this.matron.removeListener('gotTag'       , this.this_pushTag);
+        this.matron.removeListener('setParam'     , this.this_pushParam);
+        this.matron.removeListener('setParamError', this.this_setParamError);
+        this.matron.removeListener("devAdded"     , this.this_deviceInfoChanged);
+        this.matron.removeListener("devRemoved"   , this.this_deviceInfoChanged);
+        this.matron.removeListener('vahData'      , this.this_pushData);
         this.haveRegisteredListeners = false;
         delete this.sock;
         this.sock = null;
@@ -283,6 +285,12 @@ WebServer.prototype.clientDisconnected = function () {
 WebServer.prototype.pushData = function (data) {
     if (this.sock) {
         this.sock.emit('newVahData', data.toString());
+    }
+};
+
+WebServer.prototype.setParamError = function (data) {
+    if (this.sock) {
+        this.sock.emit('setParamError', data);
     }
 };
 
@@ -303,12 +311,13 @@ WebServer.prototype.handleWebConnection = function (socket) {
     socket.on('setclock'      , this.this_requestedSetClock);
 
     if (! this.haveRegisteredListeners) {
-        this.matron.on('gotGPSFix'  , this.this_pushGPSFix);
-        this.matron.on('gotTag'     , this.this_pushTag);
-        this.matron.on('setParam'   , this.this_pushParam);
-        this.matron.on('devAdded'   , this.this_deviceInfoChanged);
-        this.matron.on('devRemoved' , this.this_deviceInfoChanged);
-        this.matron.on('vahData'    , this.this_pushData);
+        this.matron.on('gotGPSFix'    , this.this_pushGPSFix);
+        this.matron.on('gotTag'       , this.this_pushTag);
+        this.matron.on('setParam'     , this.this_pushParam);
+        this.matron.on('setParamError', this.this_setParamError);
+        this.matron.on('devAdded'     , this.this_deviceInfoChanged);
+        this.matron.on('devRemoved'   , this.this_deviceInfoChanged);
+        this.matron.on('vahData'      , this.this_pushData);
         this.haveRegisteredListeners = true;
     };
 

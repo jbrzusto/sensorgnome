@@ -300,9 +300,13 @@ RTLSDR.prototype.hw_setParam = function(parSetting, callback) {
     var cmdNo = this.rtltcpCmds[parSetting.par];
     if (cmdNo && this.cmdSock) {
 //        console.log("RTLSDR: about to set parameter " + par + " to " + val + "\n");
-        cmdBuf.writeUInt8(cmdNo, 0);
-        cmdBuf.writeUInt32BE(val, 1); // note: rtl_tcp expects big-endian
-        this.cmdSock.write(cmdBuf, callback);
+        try {
+            cmdBuf.writeUInt8(cmdNo, 0);
+            cmdBuf.writeUInt32BE(val, 1); // note: rtl_tcp expects big-endian
+            this.cmdSock.write(cmdBuf, callback);
+        } catch(e) {
+            this.matron.emit("setParamError", {type:"rtlsdr", port: this.dev.attr.port, par: par, val:val, err: e.toString()})
+        }
     };
 };
 
@@ -330,8 +334,29 @@ RTLSDR.prototype.gotCmdReply = function(data) {
         var replyString = this.replyBuf.substring(0, eol);
 	this.replyBuf = this.replyBuf.substring(eol + 1);
         var dev = HubMan.getDevs()[this.dev.attr.port];
-        if (dev)
+        if (dev) {
             dev.settings = JSON.parse(replyString);
+            for (p in dev.settings) {
+                var val = dev.settings[p];
+                switch (p) {
+                case "frequency":
+                    // convert to MHz from Hz
+                    val = val / 1.0E6;
+                    break;
+                case "tuner_gain":
+                case "if_gain1":
+                case "if_gain2":
+                case "if_gain3":
+                case "if_gain4":
+                case "if_gain5":
+                case "if_gain6":
+                    // convert to dB from 0.1 dB
+                    val = val / 10.0;
+                    break;
+                };
+                dev.settings[p] = val;
+            }
+        }
     }
 };
 

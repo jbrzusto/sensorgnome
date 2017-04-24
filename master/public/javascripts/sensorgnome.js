@@ -11,7 +11,11 @@ var load2 = function() {
     loadScript("/javascripts/jquery.js", load3);
 };
 var load3 = function() {
-    loadScript("/javascripts/jquery.form.min.js", sensorgnomeInit);
+    loadScript("/javascripts/jquery.form.min.js", load4);
+};
+
+var load4 = function() {
+    loadScript("/javascripts/jquery-ui.min.js", sensorgnomeInit);
 };
 
 var loadScript = function(src, callback) {
@@ -44,6 +48,43 @@ function setFreq(n) {
     }
 };
 
+function setParam(port, par, val) {
+    if (socket) {
+        socket.emit("clientSetParam", {port:port, par:par, val:val});
+    }
+};
+
+function onSetParamError(data) {
+    try {
+        $("#rtlsdr_param_" + data.port + "_" + data.par).css("color", "#b00000");
+    } catch (e)
+    {};
+};
+
+function rtlsdrParams(n) {
+    var settings = devList[n].settings;
+    if (! settings)
+        return;
+    // empty current table
+    $("#rtlsdrParamsTable tr").remove();
+    for (s in settings) {
+        if (! s.match(/tuner_type|num_tuner_gain_indexes/)) {
+            var ctrl = '#rtlsdr_param_' + n + '_' + s;
+            $("#rtlsdrParamsTable").append('<tr><td>' + s + '</td><td><input id="rtlsdr_param_' + n + '_' + s + '" type="text" size = 8 value="' + settings[s] + '"></input><button id="' + ctrl.substr(1) + '_button' + '" onclick="setParam(' + n + ', \'' + s + '\', $(\'' + ctrl + '\')[0].value)">Set</button></td></tr>');
+            $(ctrl).on('input', function(x) {return function(){$(x).css("color", "#000000")}}(ctrl));
+            $(ctrl).bind('keypress', function (x) { return function (event) {
+                if (event.keyCode === 13) {
+                    $(x).trigger('click');
+                }
+            }}(ctrl + '_button'));
+        } else {
+            $("#rtlsdrParamsTable").append('<tr><td>' + s + '</td><td><b>' + settings[s] + '</b></td></tr>');
+        }
+    }
+    $("#rtlsdrParams").dialog( {modal: false, width:675});
+};
+
+
 var socket;
 var VAHstatus;
 var devList=[];
@@ -59,7 +100,7 @@ function onMachineinfo (data) {
     $("#machine_id").text(data.machine.machineID);
     $("#version").text(data.machine.version);
     var uptimes = data.uptime.split(/ +/);
-    var upsecs = uptimes[0] + 0;
+    var upsecs = parseFloat(uptimes[0]);
     var updays = Math.floor(upsecs / (24 * 3600));
     upsecs -= updays * 3600 * 24;
     var uphours = Math.floor(upsecs / 3600);
@@ -81,7 +122,7 @@ function onNewVahData (data) {
             var freq = hit[2];
             var absFreq = $("#datalogAbsFreq")[0].checked && devList[port];
             if (absFreq && devList[port].settings)
-                freq = devList[port].settings.frequency / 1.0E6 + freq/1000;
+                freq = devList[port].settings.frequency + freq/1000;
             line += hit[0] + " " + Math.round(1000000*freq)/1000000 + (absFreq ? " MHz " : " kHz ") + hit[3] +" / " + hit[4] + " dB\n";
         }
     }
@@ -138,6 +179,10 @@ function onGotParam (data) {
     } else {
         line += " set " + data.par + " = " + data.val + "\n"
     }
+    try {
+        $("#rtlsdr_param_" + data.port + "_" + data.par).css("color", "#00c000");
+    } catch(e) {};
+
     var elt = $("#parlog");
     var top = elt[0].scrollTop;
     elt.append(line);
@@ -189,14 +234,14 @@ function onDevinfo (data) {
             break;
         case "rtlsdr":
             if (devList[slot].settings && devList[slot].settings.frequency) {
-                d["frequency"] = devList[slot].settings.frequency / 1.0e6;
+                d["frequency"] = devList[slot].settings.frequency;
             }
             txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
-            txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
+            txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>' + '<button type="button" onclick="rtlsdrParams(' + slot + ')">All Settings...</button>';
             break;
         case "fcd":
             if (devList[slot].settings && devList[slot].settings.frequency) {
-                d["frequency"] = devList[slot].settings.frequency / 1.0e6;
+                d["frequency"] = devList[slot].settings.frequency;
             }
             txt = d["name"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
             txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>';
@@ -400,6 +445,7 @@ var sensorgnomeInit = function() {
         socket.on('newVahData', onNewVahData);
         socket.on('gotTag', onGotTag);
         socket.on('gotParam', onGotParam);
+        socket.on('setParamError', onSetParamError);
         socket.on('gpsfix', onGpsfix);
         socket.on('devinfo', onDevinfo);
         socket.on('lsdata', onLsdata);
