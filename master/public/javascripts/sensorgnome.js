@@ -268,7 +268,7 @@ function onVahstatus (status) {
         timeTxt += (' <span id="pps" style="color: ' + (ppsOK ? "green" : "red") + '">PPS ' + (ppsOK ? "present" : "missing") + '</span>');
     }
     $('#sgtime').html(timeTxt);
-    var tabHdr="<table><tr><th>USB Port #</th><th>Hardware<br>Frame Rate<br>kHz</th><th>Channels</th><th>Plugin</th><th>Current<br>Feature Detection Rate<br>pulses per minute</th><th>Long-term<br>Feature Detection Rate<br>pulses per minute</th><th>Current<br>Frame Processing Rate<br>kHz</th><th>(Re)Started</th></tr>";
+    var tabHdr="<table><tr><th>USB Port #</th><th>Hardware<br>Frame Rate (kHz)<br>Obs. / Set</th><th>Plugin<br>Frame Rate (kHz)<br>Obs. / Set</th><th>Channels</th><th>Plugin</th><th>Current<br>Feature Detection Rate<br>pulses per minute</th><th>Long-term<br>Feature Detection Rate<br>pulses per minute</th><th>(Re)Started</th></tr>";
     var txt = "";
     for (n in status) {
         var item = status[n];
@@ -276,7 +276,7 @@ function onVahstatus (status) {
             $("#LivePluginData").show();
             if(! status[item.devLabel].plugins)
                 status[item.devLabel].plugins={};
-            status[item.devLabel].plugins[item.pluginID] = item.totalFeatures;
+            status[item.devLabel].plugins[item.pluginID] = item;
             if (txt == "")
                 txt = tabHdr;
         }
@@ -286,19 +286,23 @@ function onVahstatus (status) {
         if (fcd.type != "DevMinder")
             continue;
         for (p in fcd.plugins) {
-            var prate, frate, tprate;
+            var plugin = fcd.plugins[p];
+            var pulse_rate, hw_rate, tot_pulse_rate, sw_rate;
             var oldfcd;
             if (VAHstatus)
                 oldfcd = VAHstatus[n];
             if (oldfcd) {
-                frate = (fcd.totalFrames - oldfcd.totalFrames) / (date - VAHstatus.date);
-                prate = (fcd.plugins[p] - oldfcd.plugins[p]) / (fcd.totalFrames - oldfcd.totalFrames) * fcd.hwRate;
+                var oldplugin = oldfcd.plugins[p];
+                hw_rate = (fcd.totalFrames - oldfcd.totalFrames) / (date - VAHstatus.date);
+                sw_rate = (plugin.totalFrames - oldplugin.totalFrames) / (date - VAHstatus.date);
+                pulse_rate = (plugin.totalFeatures - oldplugin.totalFeatures) / (fcd.totalFrames - oldfcd.totalFrames) * fcd.hwRate;
             } else {
-                frate = fcd.totalFrames / (date - fcd.startTimestamp);
-                prate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
+                hw_rate = fcd.totalFrames / (date - fcd.startTimestamp);
+                sw_rate = plugin.totalFrames / (date - fcd.startTimestamp);
+                pulse_rate = plugin.totalFeatures / fcd.totalFrames * fcd.hwRate;
             }
-            tprate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
-            txt += "<tr><td>" + n + "</td><td>" + (fcd.hwRate/1000).toFixed(1) + "</td><td>" + fcd.numChan + "</td><td>" + p + "</td><td>"+ (prate * 60).toFixed(4) + "</td><td>" + (tprate * 60).toPrecision(6) + "</td><td>" + (frate / 1000).toFixed(1) + "<td>" + (new Date(fcd.startTimestamp * 1000)).toUTCString() + "</td></tr>";
+            tot_pulse_rate = plugin.totalFeatures / fcd.totalFrames * fcd.hwRate;
+            txt += "<tr><td>" + n + "</td><td>" + (hw_rate / 1000).toFixed(1) + " / " + (fcd.hwRate/1000).toFixed(1) + "</td><td>" + (sw_rate / 1000).toFixed(1) + " / " + (plugin.rate / 1000).toFixed(1) + "</td><td>" + fcd.numChan + "</td><td>" + p + "</td><td>"+ (pulse_rate * 60).toFixed(4) + "</td><td>" + (tot_pulse_rate * 60).toPrecision(6) + "</td><td>" + (new Date(fcd.startTimestamp * 1000)).toUTCString() + "</td></tr>";
         }
     }
     if (txt != "")
