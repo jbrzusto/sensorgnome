@@ -22,6 +22,19 @@
   in which case we need to restart rtl_tcp, since its only handles
   two connections and dies after noticing either has closed.
 
+  Parameters settings accepted by rtl_tcp are all integers; this module
+  is responsible for converting to/from natural units.
+  example:
+
+    parameter    rtl_tcp unit    "natural unit"
+                   (integer)    (floating point)
+   ---------------------------------------------
+    frequency     166370000        166.376 MHz
+    tuner_gain       105             10.5 dB
+
+  "Natural units" are used in deployment.txt, the web interface, and
+  the matron's "setParam" messages.
+
 */
 
 RTLSDR = function(matron, dev, devPlan) {
