@@ -41,12 +41,12 @@ function GPS (matron) {
 };
 
 GPS.prototype.waitForClockSync = function() {
-    // wait up to 5 minutes ( = 30 * 10 seconds) for chronyc to get the clock 
+    // wait up to 30 seconds ( = 3 * 10 seconds) for chronyc to get the clock 
     // synchronized to within the currently-desired precision second of GPS.
     // Due to an apparent bug in chronyc wherein "chronyc waitsync 0 1" sometimes
     // waits forever with a server-connection problem, we do a finite wait then
     // respawn.
-    this.chronyChild = ChildProcess.execFile("/usr/bin/chronyc", ["waitsync", "30", Math.pow(10, -(this.clockSyncDigits + 1))], this.this_GPSSetClock);
+    this.chronyChild = ChildProcess.execFile("/usr/bin/chronyc", ["waitsync", "3", Math.pow(10, -(this.clockSyncDigits + 1))], this.this_GPSSetClock);
 };
 
 GPS.prototype.timeStampCode = function() {

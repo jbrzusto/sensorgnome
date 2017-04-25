@@ -1,13 +1,19 @@
 #! /bin/bash
 ##
 ## detect and enable the compudata / adafruit gps cape - raspberry Pi version
+## or allow for a USB GPS.
 ##
-## This script needs to be symlinked from /etc/rcS.d/S14sensorgnome-gpscape.
+## Depending on whether the cape is detected, different configuration files
+## are set up for use by gpsd and chrony, and these are started here.
 ##
-## This device presents as ttyAMA0, with PPS on GPIO pin #4.
+## The GPS cape device presents as ttyAMA0, with PPS on GPIO pin #4.
 ##
 ## It does not have a serial number eeprom, so we have to
 ## detect it by waiting for a sentence on the port.
+
+## assume gps will be a USB device
+cp -f /etc/default/gpsd-usb /etc/default/gpsd
+cp -f /etc/chrony/chrony.conf-usb /etc/chrony/chrony.conf
 
 GPS=/dev/ttyAMA0
 
@@ -16,7 +22,7 @@ GPS=/dev/ttyAMA0
 ## that if no cape is present, we don't hang indefinitely,
 ## fixing the problem with the 2014 Sept. 10 software update.
 
-stty -F $GPS raw 9600 min 0 time 50
+stty -F $GPS raw 9600 min 0 time 100
 
 ## wait for a GPRMC sentence and use it to set the system clock.
 ## This cape has a battery-backed RTC, whose date and time appear
@@ -32,16 +38,17 @@ stty -F $GPS raw 9600 min 0 time 50
 ## read until we've seen 50 sentences or a total elapsed time of 10 seconds
 
 ## we do this as a pipeline to avoid losses from opening and closing $GPS
-## multiple times.  Only try read 50 sentences or for up to 10 seconds.
-## This will add 10 seconds to the boot time of a non-GPS-cape SG.
+## multiple times.  Only try read 50 sentences or for up to 5 seconds.
+## This will add 5 seconds to the boot time of a non-GPS-cape SG.
 ## FIXME: see how low we can reduce this.
 
-MAXTRIES=10
+MAXTRIES=3
+
 
 cat $GPS | (
     RMC=""
-    COUNT=0
-    TIME=0
+    COUNT=0  ## count lines read
+    TIME=0   ## count timeouts
     BAD="" ## not sure this is needed, but detects cruft after a sentence
            ## which might indicate we didn't read the line clearly
            ## Ideally, we'd use the checksum but you don't really want
@@ -49,7 +56,7 @@ cat $GPS | (
 
     while [[ "${RMC:0:6}" != '$GPRMC' && $COUNT -lt 50 && $TIME -lt $MAXTRIES ]]; do
         IFS=" "
-        read -t 1 SENTENCE
+        read -t 2 SENTENCE
 
         if [[ $? -eq 0 ]]; then
             IFS=","
@@ -68,7 +75,7 @@ cat $GPS | (
     fi
     echo $RMC $HHMMSS $DDMMYY
 ) | (
-    read -t 10 RMC HHMMSS DDMMYY
+    read -t 5 RMC HHMMSS DDMMYY
     ## verify that we got a valid GPRMC sentence
 
     if [[ "${RMC:0:6}" == '$GPRMC' ]]; then
@@ -80,12 +87,17 @@ cat $GPS | (
             DATE=${DDMMYY:2:2}${DDMMYY:0:2}${HHMMSS:0:2}${HHMMSS:2:2}20${DDMMYY:4:2}.${HHMMSS:4:2}
             date -u $DATE
         fi
-        ## kludge: create a symlink to the GPS serial port from
-        ## the location expected by gpsd
-        ln -f -s $GPS /dev/ttyUSB0
+        ## kludge: set gpsd defaults
+	cp -f /etc/default/gpsd-cape /etc/default/gpsd
+        cp -f /etc/chrony/chrony.conf-cape /etc/chrony/chrony.conf
+
         mkdir /dev/sensorgnome
         ## add a link in /dev/sensorgnome so the web interface can indicate
         ## this GPS is present.
         ln -f -s $GPS /dev/sensorgnome/gps.port=0.pps=1.type=cape
     fi
 )
+
+systemctl restart chrony
+sleep 1
+systemctl restart gpsd.service
