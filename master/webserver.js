@@ -247,6 +247,8 @@ WebServer.prototype.pushTag = function (x) {
 
 WebServer.prototype.pushParam = function (x) {
     if (this.sock) {
+        if (x.port)
+            x.other = HubMan.getDevs()[x.port].settings;
         this.sock.emit('gotParam', x);
     };
 };

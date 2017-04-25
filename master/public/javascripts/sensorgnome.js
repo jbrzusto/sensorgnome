@@ -67,9 +67,14 @@ function rtlsdrParams(n) {
         return;
     // empty current table
     $("#rtlsdrParamsTable tr").remove();
+    var tuner_gain_sel = $('<select>')
+    tuner_gain_sel.attr("id", "rtlsdr_param_" + n + "_tuner_gain");
+    $(settings["tuner_gain_values"]).each(function() {
+        tuner_gain_sel.append($("<option>").attr('value',this).text(this));
+    });
     for (s in settings) {
-        if (! s.match(/tuner_type|num_tuner_gain_indexes/)) {
-            var ctrl = '#rtlsdr_param_' + n + '_' + s;
+        var ctrl = '#rtlsdr_param_' + n + '_' + s;
+        if (! s.match(/tuner_type|tuner_gain/)) {
             $("#rtlsdrParamsTable").append('<tr><td>' + s + '</td><td><input id="rtlsdr_param_' + n + '_' + s + '" type="text" size = 8 value="' + settings[s] + '"></input><button id="' + ctrl.substr(1) + '_button' + '" onclick="setParam(' + n + ', \'' + s + '\', $(\'' + ctrl + '\')[0].value)">Set</button></td></tr>');
             $(ctrl).on('input', function(x) {return function(){$(x).css("color", "#000000")}}(ctrl));
             $(ctrl).bind('keypress', function (x) { return function (event) {
@@ -77,8 +82,13 @@ function rtlsdrParams(n) {
                     $(x).trigger('click');
                 }
             }}(ctrl + '_button'));
-        } else {
+        } else if (s == "tuner_type") {
             $("#rtlsdrParamsTable").append('<tr><td>' + s + '</td><td><b>' + settings[s] + '</b></td></tr>');
+        } else if (s == "tuner_gain") {
+            var tr = $('<tr>').append('<td>' + s + '</td>');
+            var td = $('<td>').append(tuner_gain_sel);
+            tr.append(td).append('<button id="' + ctrl.substr(1) + '_button' + '" onclick="setParam(' + n + ', \'' + s + '\', $(\'' + ctrl + '\')[0].value)">Set</button>');
+            $("#rtlsdrParamsTable").append(tr);
         }
     }
     $("#rtlsdrParams").dialog( {modal: false, width:675});
@@ -165,6 +175,19 @@ function onGotTag (data) {
 function onGotParam (data) {
     if (data.errCode != 0)
         return;
+    if (data.other) {
+        par = data.other;
+        if (! devList[data.port].settings)
+            devList[data.port].settings = {};
+        for (n in par) {
+            devList[data.port].settings[n] = par[n];
+        }
+        for (n in par) {
+            if (n != data.par)
+                $("#rtlsdr_param_" + data.port + "_" + n).val(par[n]);
+        }
+    }
+
     var line = (new Date(Math.round(data.time * 10) * 100)).toISOString().replace(/[ZT]/g," ").substr(11, 21);
     line += "ant " + data.port;
     if (data.par == "-m" || data.par == "frequency") {
@@ -456,10 +479,12 @@ var sensorgnomeInit = function() {
         socket.on('softwareUpdateResults', onSoftwareUpdateResults);
 
         $('#updateUploadForm').submit(submitUpdateUploadForm);
+        socket.on('connect', function() {
+            socket.emit('vahstatus');
+            socket.emit('gpsfix');
+        });
     });
 
-    socket.emit('vahstatus');
-    socket.emit('gpsfix');
 };
 
 load1();
