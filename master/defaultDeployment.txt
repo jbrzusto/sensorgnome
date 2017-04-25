@@ -63,49 +63,49 @@
 //                        "name": "tuner_gain",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 100
+//                            "value": 10.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain1",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 30
+//                            "value": 3.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain2",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 30
+//                            "value": 3.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain3",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 1
+//                            "value": 1.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain4",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 1
+//                            "value": 1.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain5",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 1
+//                            "value": 1.0
 //                        }
 //                    },
 //                    {
 //                        "name": "if_gain6",
 //                        "schedule": {
 //                            "type": "Constant",
-//                            "value": 1
+//                            "value": 1.0
 //                        }
 //                    },
                     {
