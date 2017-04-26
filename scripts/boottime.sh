@@ -25,6 +25,9 @@ echo 0 > gpio17/value
 echo 18 > export
 echo 1 > gpio18/active_low
 
+# make sure serial number-hostname for local host is in /etc/hosts
+sed -i /etc/hosts -e "/127.0.0.1[ \t]\+localhost/s/^.*$/127.0.0.1\tlocalhost `hostname`/"
+
 # make sure the DOS boot partition of the boot SD disk (internal flash
 # disk or microSD card on beaglebone black; microSD card on beaglebone white)
 # is mounted at /mnt/boot
