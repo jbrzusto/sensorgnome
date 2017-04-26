@@ -52,20 +52,20 @@
                             "value": 166.376
                         }
                     },
-//                    {
-//                        "name": "gain_mode",
-//                        "schedule": {
-//                            "type": "Constant",
-//                            "value": 1
-//                        }
-//                    },
-//                    {
-//                        "name": "tuner_gain",
-//                        "schedule": {
-//                            "type": "Constant",
-//                            "value": 10.0
-//                        }
-//                    },
+                   {
+                       "name": "gain_mode",
+                       "schedule": {
+                           "type": "Constant",
+                           "value": 1
+                       }
+                   },
+                   {
+                       "name": "tuner_gain",
+                       "schedule": {
+                           "type": "Constant",
+                           "value": 40.2
+                       }
+                   },
 //                    {
 //                        "name": "if_gain1",
 //                        "schedule": {
@@ -114,14 +114,14 @@
                             "type": "Constant",
                             "value": 0
                         }
+                    },
+                    {
+                        "name": "agc_mode",
+                        "schedule": {
+                            "type": "Constant",
+                            "value": 0
+                        }
                     }
-//                    {
-//                        "name": "agc_mode",
-//                        "schedule": {
-//                            "type": "Constant",
-//                            "value": 0
-//                        }
-//                    },
 //                    {
 //                        "name": "direct_sampling",
 //                        "schedule": {
