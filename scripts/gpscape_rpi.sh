@@ -38,8 +38,8 @@ stty -F $GPS raw 9600 min 0 time 100
 ## read until we've seen 50 sentences or a total elapsed time of 10 seconds
 
 ## we do this as a pipeline to avoid losses from opening and closing $GPS
-## multiple times.  Only try read 50 sentences or for up to 5 seconds.
-## This will add 5 seconds to the boot time of a non-GPS-cape SG.
+## multiple times.  Only try read 50 sentences or for up to 20 seconds.
+## This will add 20 seconds to the boot time of a non-GPS-cape SG.
 ## FIXME: see how low we can reduce this.
 
 MAXTRIES=3
@@ -75,7 +75,7 @@ cat $GPS | (
     fi
     echo $RMC $HHMMSS $DDMMYY
 ) | (
-    read -t 5 RMC HHMMSS DDMMYY
+    read -t 20 RMC HHMMSS DDMMYY
     ## verify that we got a valid GPRMC sentence
 
     if [[ "${RMC:0:6}" == '$GPRMC' ]]; then
