@@ -259,7 +259,7 @@ function onDevinfo (data) {
             if (devList[slot].settings && devList[slot].settings.frequency) {
                 d["frequency"] = devList[slot].settings.frequency;
             }
-            txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + '; USB VID:PID=' + d["vidpid"] + ' tuned to <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
+            txt = d["name"] + ': ' + d["mfg"] + ' : ' + d["prod"] + ' (' + d["vidpid"] + ') @ <a id="radio_freq' + slot + '\">' + d["frequency"] + '</a><span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
             txt += '&nbsp;&nbsp;<input id="set_freq_button' + slot + '" type="text" size = 8></input><button onclick="setFreq(' + slot + ')">Set Freq. In MHz</button>' + '<button type="button" onclick="rtlsdrParams(' + slot + ')">All Settings...</button>';
             break;
         case "fcd":
