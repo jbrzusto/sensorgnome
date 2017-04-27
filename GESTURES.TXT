@@ -1,0 +1,46 @@
+If a file called GESTURES.TXT exists in /boot, then the gesture service
+is run.  This detects pushbutton gestures on a switch wired to GPIO 17, 18.
+
+The switch is e.g. this one:  https://www.adafruit.com/product/559
+
+and it is wired like so:
+
+"+"         -> GPIO 17
+"-", COMMON -> GND  (two terminals going to ground)
+"NO"        -> GPIO 18 (normally-open terminal goes to GPIO 18)
+
+Device-tree fragments are loaded to ensure the internal pull-up
+resistor is enabled on GPIO 18 etc. so that grounding GPIO 18 is
+considered "on".  Note that the adafruit switch's LED includes an
+internal resistor to limit current.  If you roll your own LED, make
+sure to do something similar.
+
+The following gestures are supported:
+
+single click: toggle a 1/s heartbeat of the LED as well as rapid
+              blinks for detected tag pulses.  Turns off automatically
+              after 10 minutes
+
+double click: toggle the WiFi hotspot (RPi 3 only); the PI 3's
+              internal WiFi adapter will turn on and create a
+              WPA2-protected access point with the SG serial number
+              as both essid and passphrase, e.g. SG-26F1RPI358CC The
+              PI3 has the address 192.168.7.2 when connecting
+              wirelessly.  When the WiFi is on, the LED blinks on and
+              off every 0.9 seconds.
+
+              Turns off automatically after 30 minutes.
+
+hold 3 sec: perform a clean shutdown; the LED will light and stay
+              lit until shutdown is complete, and then turns off.
+
+See /home/pi/proj/sensorgnome/master/gestures.js and pushbtn.js for details.
+
+In particular, when GESTURES.TXT exists, you will need to turn on the WiFi
+hotspot using a double-clik of the switch mentioned above.
+
+To have the WiFi hotspot on at the start of every boot session,
+delete GESTURES.TXT
+
+If you delete or rename this file, no gesture service is run on the next
+boot.
