@@ -211,6 +211,9 @@ VAH.prototype.gotCmdReply = function (data) {
         var replyString = this.replyBuf.substring(0, eol);
 	this.replyBuf = this.replyBuf.substring(eol + 1);
 
+        if (replyString.length == 0)
+            continue;
+
 	var reply = JSON.parse(replyString);
 
         if (reply.async) {
