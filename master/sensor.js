@@ -97,10 +97,11 @@ Sensor.prototype.devStalled = function(vahDevLabel) {
 Sensor.prototype.init = function() {
 // DEBUG: console.log("Sensor.prototype.init\n")
     // open (without starting) the device
-    if (this.hw_init)
+    if (this.hw_init) {
         this.hw_init(this.this_initDone);
-    else
+    } else {
 // DEBUG: console.log("Weird - got to Sensor.prototype.init with no hw_init method");
+    }
 };
 
 Sensor.prototype.initDone = function() {
