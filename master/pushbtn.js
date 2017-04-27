@@ -6,17 +6,17 @@
 
   The button state is polled regularly (default: every 100 ms), which
   takes care of debouncing.  This produces a string of "0"s and "1"s
-  corresponding to "released" and "pressed".  Gestures are regexp
-  matches to the tail of the string.  Only the most recent 5 seconds
-  of button history are maintained.
+  corresponding to the states "released" and "pressed".  Gestures are
+  regexp matches to the tail of the string.  Only the most recent 5
+  seconds of button history are maintained.
 
   Example gestures (which are known by the gesture() method)
 
-    - click: /0{5}1{1,5}0{3}$/
+    - click:       /0{5}1{1,5}0{3}$/
 
     - doubleClick: /0{5}1{1,3}0{12}1{1,3}0{3}$/
 
-    - hold: /0{5}1{20}$/
+    - hold:        /0{5}1{30}$/  (hold for 3 s)
 
   Handlers for gestures are registered with the addGesture(RE, callback) method.
   Polling of the button is turned on/off with the run() method.
@@ -32,7 +32,7 @@
       never stop), in seconds.  Returns an id representing this blink.
       Multiple blinkers can be operating simultaneously.
 
-    - stopBlinker(id): cancel blinker with given I
+    - stopBlinker(id): cancel blinker with given id
 
 (C) 2017 John Brzustowski
 License: GPL2 or later.
@@ -66,7 +66,7 @@ function Pushbtn (matron, gpioSW, gpioLED, pollInt) {
     this.knownGestures = {
             click:       /0{5}1{1,5}0{3}$/,
             doubleClick: /0{5}1{1,3}0{1,2}1{1,3}0{3}$/,
-            hold:        /0{5}1{20}$/
+            hold:        /0{5}1{30}$/
     };
 
     // callback closures

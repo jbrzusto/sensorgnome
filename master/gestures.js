@@ -2,16 +2,16 @@
 
   respond to gestures on the pushbutton/LED switch wired to GPIO 17 (LED) and 18 (switch)
 
-  This module runs in a stand-alone instance of nodejs so that it's not affected by
-  any problems the master process encounters.
+  This module runs in a stand-alone instance of nodejs so that it's
+  not affected by any problems the master nodejs process encounters.
 
   The switch is e.g. this one:  https://www.adafruit.com/product/559
 
   and it is wired like so:
 
-  "+" -> GPIO 17
+  "+"         -> GPIO 17
   "-", COMMON -> GND  (two terminals going to ground)
-  "NO" -> GPIO 18
+  "NO"        -> GPIO 18
 
   The following gestures are supported:
 
@@ -24,20 +24,34 @@
                 WPA2-protected access point with the SG serial number
                 as both essid and passphrase, e.g. SG-26F1RPI358CC The
                 PI3 has the address 192.168.7.2 when connecting
-                wirelessly.  When a double-click is recognized, the
-                LED gives three medium-length blinks.
+                wirelessly.  When the WiFi is on, the LED blinks on and
+                off every 0.9 seconds.
 
                 Turns off automatically after 30 minutes.
 
   hold 3 sec: perform a clean shutdown; the LED will light and stay
                 lit until shutdown is complete, and then turns off.
 
+  Details of how gestures are recognized are in pushbtn.js
+
+ (C) John Brzustowski 2017
+ License: GPL v 2 or late
+
 */
 
-var exit = false;
+var wifiTimeoutMinutes = 30;    // how long after activation the WiFi shuts down.
+var heartbeat          = 0;     // positive id of blinker if flashing a heartbeat; 0 if not
+var wifi               = 0;     // positive id of WiFi blinker if we are running the hotspot; 0 if not
+var shutdown           = false; // are we shutting down?
+var exit               = false; // are we exiting (if so, don't blink)
+
 Fs = require("fs");
+Child_process = require("child_process");
+
 Pushbtn = require("/home/pi/proj/sensorgnome/master/pushbtn").Pushbtn;
 var b = new Pushbtn(null, "/sys/class/gpio/gpio18/value", "/sys/class/gpio/gpio17/value");
+
+// turn the LED off to start
 b.set(0);
 
 // accept 'blink' datagrams on UDP port 59001
@@ -48,24 +62,15 @@ var sock = Dgram.createSocket('udp4');
 sock.bind(59001, "127.0.0.1");
 sock.on("message", fastBlink);
 
-var heartbeat = 0;     // positive id of blinker if flashing a heartbeat; 0 if not
-var wifi = false;      // are we running the WiFi hotspot?
-var shutdown = false;  // are we shutting down?
-
 // object we send to the master node process to enable/disable pulse
 // detection relay
 var msg = {type:"vahData", enable: false};
 
 b.gesture("click", toggleHeartbeat);
+b.gesture("doubleClick", toggleWiFi);
+b.gesture("hold", cleanShutdown);
+
 b.run()
-
-// b.gesture("click", function() {b.set(! b.state);});  // toggle LED state
-// b.gesture("doubleClick", function() {b.blinker({state: 1, duty:[0.5]}, 1.75)}) // slow on-off-on-off blink
-// b.gesture("hold", function() {b.set(1)}) // set LED on
-
-// sign up for VAH data messages from the master process
-// this gives us one detected pulse per line.
-
 
 function fastBlink (msg, rinfo) {
     // blink for each line in msg
@@ -105,6 +110,29 @@ function quitProcess () {
     b.stopAllBlinkers();
     b.set(0);
     process.exit(0);
+};
+
+function toggleWiFi() {
+    if (wifi) {
+        b.stopBlinker(wifi);
+        b.set(0);
+        Child_process.exec("systemctl stop hostapd; ifdown wlan0");
+        wifi = 0;
+        if (wifiTimeout) {
+            clearTimeout(wifiTimeout)
+            wifiTimeout = null;
+        }
+    } else {
+        wifi = b.blinker({state: 1, duty:[0.9]});
+        Child_process.exec("ifup wlan0; systemctl start hostapd");
+        wifiTimeout = setTimeout(toggleWiFi, wifiTimeoutMinutes * 60 * 1000);
+    }
+};
+
+function cleanShutdown() {
+    b.stopAllBlinkers();
+    b.set(1);
+    Child_process.exec("systemctl poweroff");
 };
 
 process.on("SIGTERM", quitProcess);

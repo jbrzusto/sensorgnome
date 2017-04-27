@@ -28,6 +28,18 @@ echo 1 > gpio18/active_low
 # make sure serial number-hostname for local host is in /etc/hosts
 sed -i /etc/hosts -e "/127.0.0.1[ \t]\+localhost/s/^.*$/127.0.0.1\tlocalhost `hostname`/"
 
+# if a file called /boot/GESTURES.TXT exists, then disable WiFi at
+# boot time.  This should have no effect on the Pi2, unless you plug
+# in a WiFi dongle, in which case, who knows.
+
+if [[ -f /boot/GESTURES.TXT ]]; then
+    systemctl stop hostapd
+    ifdown wlan0
+else
+    ifup wlan0
+    systemctl start hostapd
+fi
+
 # make sure the DOS boot partition of the boot SD disk (internal flash
 # disk or microSD card on beaglebone black; microSD card on beaglebone white)
 # is mounted at /mnt/boot
