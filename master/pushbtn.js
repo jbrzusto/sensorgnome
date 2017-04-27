@@ -60,7 +60,7 @@ function Pushbtn (matron, gpioSW, gpioLED, pollInt) {
     this.pollInterval = null;
     this.blinkers = {};  // each is {bool state, int duty[], int i, timer}
     this.state = 0;   // state of LED
-    this.blinkerID = 0; // unique ID for next blinker
+    this.blinkerID = 1; // unique ID for next blinker
 
     // known gestures
     this.knownGestures = {
@@ -156,8 +156,8 @@ Pushbtn.prototype.doBlink = function(blinker) {
         return;
     this._led(blinker.state);
     blinker.state = ! blinker.state;
-    blinker.i = (1 + blinker.i) % blinker.duty.length;
     blinker.timeOut = setTimeout(blinker.f, blinker.duty[blinker.i] * 1000);
+    blinker.i = (1 + blinker.i) % blinker.duty.length;
 };
 
 Pushbtn.prototype.stopBlinker = function(id) {
