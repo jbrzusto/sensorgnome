@@ -131,9 +131,8 @@ HubMan = function(matron, root) {
         // restarts, we'll re-enumerate
         for (var i in devs) {
             if (devs[i] && devs[i].attr.type.match(/funcube|usbAudio|rtlsdr/)) {
+                matron.emit("devRemoved", Util._extend({}, devs[i]));
                 delete devs[i];
-            } else {
-                ++i;
             }
         }
     };
