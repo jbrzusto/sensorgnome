@@ -86,6 +86,10 @@ console.log("rtlsdr: requested rate not within hardware range; using 48000");
     // rtl_tcp replies with a 12-byte header, before real command replies; we ignore this
     // as the info is available elsewhere
     this.gotCmdHeader = false;
+
+    this.inDieHandler = false; // when true, the device's death is already being handled
+
+    this.killing = false; // when true, we've deliberately killed the server
 };
 
 RTLSDR.prototype = Object.create(Sensor.Sensor.prototype);
@@ -169,15 +173,20 @@ RTLSDR.prototype.spawnServer = function() {
 };
 
 RTLSDR.prototype.serverReady = function(data) {
+    if (this.inDieHandler)
+        return;
     if (data.toString().match(/Listening/)) {
-        this.server.stdout.removeListener("data", this.this_serverReady);
-        this.connectCmd();
+        if(this.server) {
+            this.server.stdout.removeListener("data", this.this_serverReady);
+            this.connectCmd();
+        }
     }
 };
 
 RTLSDR.prototype.connectCmd = function() {
     // server is listening for connections, so connect
 // DEBUG: console.log("RTLSDR connected to server\n");
+    if (this.cmdSock || this.inDieHandler) {
         return;
     }
 // DEBUG: console.log("about to connect command socket with path: " + this.sockPath + "\n");
@@ -246,38 +255,23 @@ RTLSDR.prototype.serverError = function(err) {
 };
 
 RTLSDR.prototype.serverDied = function(code, signal) {
-    if (this.inDieHandler)
+    if (this.killing)
         return;
-    this.inDieHandler = true;
 // DEBUG: console.log("rtl_tcp server died\ncode: " + code + "\nsignal:" + signal + "\n")
+    this.hw_reset();
+};
+
+RTLSDR.prototype.hw_delete = function() {
 // DEBUG: console.log("rtlsdr::hw_delete\n");
+    if (this.server) {
+        this.killing = true;
+        this.server.kill("SIGKILL");
+        this.server = null;
+    }
     if (this.cmdSock) {
         this.cmdSock.destroy();
         this.cmdSock = null;
     }
-    if (this.dataSock) {
-        this.dataSock.destroy();
-        this.dataSock = null;
-    }
-    if (! this.quitting)
-        setTimeout(this.this_spawnServer, 5000);
-    if (this.connectCmdTimeout) {
-        clearTimeout(this.connectCmdTimeout);
-        this.connectCmdTimeout = null;
-    }
-    if (this.connectDataTimeout) {
-        clearTimeout(this.connectDataTimeout);
-        this.connectDataTimeout = null;
-    }
-    this.inDieHandler = false;
-    this.matron.emit("RTLSDRdied")
-};
-
-RTLSDR.prototype.hw_delete = function() {
-    console.log("rtlsdr::hw_delete");
-    if (this.server)
-        this.server.kill("SIGINT");
-    this.server = null;
 };
 
 RTLSDR.prototype.hw_startStop = function(on) {
@@ -286,9 +280,28 @@ RTLSDR.prototype.hw_startStop = function(on) {
 // DEBUG: console.log("rtlsdr::hw_startStop = " + on + "\n");
 };
 
+// hw_reset is called when either data from the device seems to have stalled
+// (which can be due to chrony stepping the clock forward) or when rtl_tcp
+// has died
+
+RTLSDR.prototype.hw_reset = function() {
+    if (this.inDieHandler)
+        return;
+    this.inDieHandler = true;
+    // pretend the device has been removed then added
+// DEBUG: console.log("rtlsdr::hw_reset\n");
+    // copy the device structure (really - this is the best node has to offer for cloning POD?)
+    var dev = JSON.parse(JSON.stringify(this.dev));
+    // re-add after 5 seconds
+    setTimeout(function(){TheMatron.emit("devAdded", dev)}, 5000);
+    // remove now
+    this.matron.emit("devRemoved", this.dev);
+};
+
 RTLSDR.prototype.hw_stalled = function() {
     // relaunch rtl_tcp and re-establish connection
 // DEBUG: console.log("rtlsdr::hw_stalled\n");
+    this.hw_reset();
 };
 
 RTLSDR.prototype.hw_setParam = function(parSetting, callback) {
