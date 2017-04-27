@@ -89,16 +89,18 @@ Sensor.prototype.devRemoved = function(dev) {
 };
 
 Sensor.prototype.devStalled = function(vahDevLabel) {
+// DEBUG: console.log("Got devStalled with " + vahDevLabel + "\n");
     if (vahDevLabel = this.dev.attr.port)
         this.stalled();
 };
 
 Sensor.prototype.init = function() {
+// DEBUG: console.log("Sensor.prototype.init\n")
     // open (without starting) the device
     if (this.hw_init)
         this.hw_init(this.this_initDone);
     else
-        console.log("Weird - got to Sensor.prototype.init with no hw_init method");
+// DEBUG: console.log("Weird - got to Sensor.prototype.init with no hw_init method");
 };
 
 Sensor.prototype.initDone = function() {
@@ -108,6 +110,7 @@ Sensor.prototype.initDone = function() {
 
 Sensor.prototype.vahOpenReply = function (reply, self) {
     if (reply.error) {
+// DEBUG: console.log("sensor vahopenreply got " + JSON.stringify(reply) + "\n");
         // schedule a retry on this device (every 10 seconds up to 10 times)
         if (++self.numOpenRetries < 10) {
             setTimeout (self.this_init, 10000);

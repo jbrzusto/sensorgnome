@@ -75,6 +75,7 @@ USBAudio.prototype.hw_devPath = function() {
 
 USBAudio.prototype.hw_init = function(callback) {
     // nothing to do for usbaudio; handled by VAH
+// DEBUG:    console.log("usbaudio: hw_init\n");
     callback();
 };
 

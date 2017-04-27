@@ -203,6 +203,7 @@ VAH.prototype.gotCmdReply = function (data) {
     // Otherwise, the reply is sent bare (i.e. not in an array of 1 element).
 
     this.replyBuf += data.toString();
+// DEBUG: console.log("VAH replied: " + data.toString() + "\n");
     for(;;) {
 	var eol = this.replyBuf.indexOf("\n");
 	if (eol < 0)
@@ -210,7 +211,6 @@ VAH.prototype.gotCmdReply = function (data) {
         var replyString = this.replyBuf.substring(0, eol);
 	this.replyBuf = this.replyBuf.substring(eol + 1);
 
-//        console.log("VAH replied: " + replyString + "\n");
 	var reply = JSON.parse(replyString);
 
         if (reply.async) {
