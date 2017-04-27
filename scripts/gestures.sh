@@ -1,3 +1,6 @@
 #!/bin/bash
 
-nodejs /home/pi/proj/sensorgnome/master/gesture.js &
+while (( 1 )); do
+    node /home/pi/proj/sensorgnome/master/gestures.js
+    sleep 60
+done
