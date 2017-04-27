@@ -6,10 +6,8 @@
 ## Depending on whether the cape is detected, different configuration files
 ## are set up for use by gpsd and chrony, and these are started here.
 ##
-## The GPS cape device presents as ttyAMA0, with PPS on GPIO pin #4.
-##
-## It does not have a serial number eeprom, so we have to
-## detect it by waiting for a sentence on the port.
+## The GPS cape device presents as ttyAMA0, with PPS on GPIO pin #4,
+## so we have to detect it by waiting for a sentence on the port.
 
 ## assume gps will be a USB device
 cp -f /etc/default/gpsd-usb /etc/default/gpsd
@@ -42,51 +40,19 @@ stty -F $GPS raw 9600 min 0 time 100
 ## This will add 20 seconds to the boot time of a non-GPS-cape SG.
 ## FIXME: see how low we can reduce this.
 
-MAXTRIES=3
+MAXTIME=300 ## maximum time (in seconds) before we accept there's no gps cape
+HAVECAPE=0
 
-
-cat $GPS | (
-    RMC=""
-    COUNT=0  ## count lines read
-    TIME=0   ## count timeouts
-    BAD="" ## not sure this is needed, but detects cruft after a sentence
-           ## which might indicate we didn't read the line clearly
-           ## Ideally, we'd use the checksum but you don't really want
-           ## me to code that in bash, do you?
-
-    while [[ "${RMC:0:6}" != '$GPRMC' && $COUNT -lt 50 && $TIME -lt $MAXTRIES ]]; do
-        IFS=" "
-        read -t 2 SENTENCE
-
-        if [[ $? -eq 0 ]]; then
-            IFS=","
-            read RMC HHMMSS C LAT D LON E F G DDMMYY H I J BAD <<< "$SENTENCE"
-            COUNT=$(( $COUNT + 1 ))
-            if [[ "$BAD" != "" ]]; then
-                BAD=""
-                RMC=""
-            fi
-        else
-            TIME=$(( $TIME + 1 ))
-        fi
-    done
-    if [[ $TIME -ge $MAXTRIES ]]; then
-       exit 10
+TS_START=`date +%s`
+TS_DONE=$(( $TS_START + $MAXTIME ))
+export IFS=","
+while (( ! $HAVECAPE && `date +%s` < $TS_DONE )); do
+    read -t5  RMC HHMMSS C LAT D LON E F G DDMMYY H I J REST < $GPS
+    if [[ "${RMC:0:3}" == '$GP' ]]; then
+        HAVECAPE=1
     fi
-    echo $RMC $HHMMSS $DDMMYY
-) | (
-    read -t 20 RMC HHMMSS DDMMYY
-    ## verify that we got a valid GPRMC sentence
-
-    if [[ "${RMC:0:6}" == '$GPRMC' ]]; then
-        ## If the GPS is cold starting from new battery, the RTC year will be 1980.
-        ## In that case, don't set the date now - we'll wait for the usual
-        ## chrony/gpsd method.  Our sanity check will begin failing in the year 2080.
-        if [[ "${DDMMYY:4:2}" -lt 80 ]]; then
-            ## set the system clock from the RMC; forcing '20' as the century.
-            DATE=${DDMMYY:2:2}${DDMMYY:0:2}${HHMMSS:0:2}${HHMMSS:2:2}20${DDMMYY:4:2}.${HHMMSS:4:2}
-            date -u $DATE
-        fi
+done
+if (( $HAVECAPE )); then
         ## kludge: set gpsd defaults
 	cp -f /etc/default/gpsd-cape /etc/default/gpsd
         cp -f /etc/chrony/chrony.conf-cape /etc/chrony/chrony.conf
@@ -95,8 +61,7 @@ cat $GPS | (
         ## add a link in /dev/sensorgnome so the web interface can indicate
         ## this GPS is present.
         ln -f -s $GPS /dev/sensorgnome/gps.port=0.pps=1.type=cape
-    fi
-)
+fi
 
 systemctl restart chrony
 sleep 1
