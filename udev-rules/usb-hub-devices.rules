@@ -327,7 +327,7 @@ ENV{sgname}="/dev/sensorgnome/rtlsdr.port=%E{PORT_NUM}.usbPath=%s{busnum}:%s{dev
 ## and then delete both ends of the link upon a plain "usb" device removal, which doesn't
 ## happen unless the device is physically removed.
 
-ENV{MAJOR}=="212",IMPORT{program}="/bin/mkdir -p /dev/sensorgnome/usb",IMPORT{program}="/bin/touch %E{sgname}",IMPORT{program}="/bin/sh -c '/bin/ln -s %E{sgname} /dev/sensorgnome/usb/%E{PORT_NUM}'"
+ENV{MAJOR}=="189",IMPORT{program}="/bin/mkdir -p /dev/sensorgnome/usb",IMPORT{program}="/bin/touch %E{sgname}",IMPORT{program}="/bin/sh -c '/bin/ln -s %E{sgname} /dev/sensorgnome/usb/%E{PORT_NUM}'"
 GOTO="done"
 
 LABEL="done"
