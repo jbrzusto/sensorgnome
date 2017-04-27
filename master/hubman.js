@@ -75,23 +75,23 @@ HubMan = function(matron, root) {
         if (! attr.port)
             return;  // not a USB-port device - we don't care
         var port = attr.port;
+        var path = root + "/" + filename;
+        var stat = "";
         try {
-            var path = root + "/" + filename;
             var stat = Fs.statSync(path);
         } catch (e) {
             // looks like the device has been removed
             // only emit a message if we already knew about this device
-//            console.log("hubman.js got error: " + e.toString());
+// DEBUG: console.log("Removed " + path + " and devs[port] is " + JSON.stringify(devs[port]));
             if (devs[port]) {
                 matron.emit("devRemoved", devs[port]);
-                console.log("Removed " + JSON.stringify(devs[port]));
                 devs[port] = null;
             }
             return;
         }
+// DEBUG: console.log("Added " + path + " and devs[port] is " + JSON.stringify(devs[port]));
         if (! devs[port]) {
             devs[port] = {path:path, attr:attr, stat:stat};
-            console.log("Added " + JSON.stringify(devs[port]));
             matron.emit("devAdded", devs[port]);
         }
     };
