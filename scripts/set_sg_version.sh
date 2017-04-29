@@ -12,7 +12,7 @@ this:
 
 where VERSION_NAME is the set of arguments passed to this script.
 
-This version string is printed, and prepended to the file
+This version string is printed, and written to the file
 
    /boot/uboot/SENSORGNOME_VERSION.TXT
 
@@ -25,5 +25,4 @@ EOF
 fi
 
 VERSION="`date +'%s,%Y-%m-%d %H:%M:%S'`,$*"
-echo $VERSION
-sed -i -e "1i$VERSION" /boot/uboot/SENSORGNOME_VERSION.TXT
+echo $VERSION | tee /boot/uboot/SENSORGNOME_VERSION.TXT
