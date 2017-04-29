@@ -40,7 +40,7 @@ stty -F $GPS raw 9600 min 0 time 100
 ## This will add 20 seconds to the boot time of a non-GPS-cape SG.
 ## FIXME: see how low we can reduce this.
 
-MAXTIME=300 ## maximum time (in seconds) before we accept there's no gps cape
+MAXTIME=120 ## maximum time (in seconds) before we accept there's no gps cape
 HAVECAPE=0
 
 TS_START=`date +%s`
