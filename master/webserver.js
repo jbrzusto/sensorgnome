@@ -169,7 +169,7 @@ WebServer.prototype.requestedSetClock = function(data) {
 };
 
 WebServer.prototype.requestedLSFiles = function () {
-    ChildProcess.exec("/bin/ls -ltR /media/*", {maxBuffer: 2000000}, this.this_pushLSFiles);
+    ChildProcess.exec("/bin/ls -lLtR /media/*/SGdata", {maxBuffer: 2000000}, this.this_pushLSFiles);
 };
 
 WebServer.prototype.pushPlan = function () {
