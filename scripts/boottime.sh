@@ -15,6 +15,13 @@
 
 mkdir -p /dev/sensorgnome/usb
 
+# make sure we have a link that points back to the FAT partition's
+# SG subfolder
+
+pushd /media
+ln -s /dev/sdcard internal_SD_card
+popd
+
 # export gpio pins for use with the adafruit pushbutton LED switch
 # (see ../overlays/Makefile)
 
