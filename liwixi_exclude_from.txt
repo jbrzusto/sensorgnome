@@ -1,0 +1,25 @@
+# liwixi exclusions for a Sensorgnome RPi
+#
+# This file provides a list of files and paths we don't want to include
+# in a liwixi distribution we generate from the current SG.
+# Its name is passed to the pliwixi script via an environment variable
+# set in /root/.bashrc like so:
+#
+#   export LIWIXI_EXCLUDE_FROM=/home/pi/proj/sensorgnome/liwixi_exclude_from.txt
+
+# exclude data files, which are stored in the SGdata directory of SD
+# card's one and only partition
+/boot/SGdata/**
+
+# ssh keys for the development git repo at acadiau.ca
+/home/pi/.ssh/id_dsa_sgpidev**
+
+# ssh keys and the tunnel port assignment from this SG's self-registration with sensorgnome.org
+/home/pi/.ssh/id_dsa
+/home/pi/.ssh/id_dsa.pub
+/home/pi/.ssh/tunnel_port
+
+# miscellaneous files
+/etc/hostname
+/etc/bootcount
+/etc/rpi_id
