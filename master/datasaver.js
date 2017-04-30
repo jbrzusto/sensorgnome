@@ -39,7 +39,7 @@ to the end of one disk and continuing on another.
      .txt - for temporary ascii file written as data are available
      .txt.gz - for compressed .dat file; after writing, we delete the original .txt
      .wav - for raw audio
-    
+
    - the "SGdata" folder is created in the first (alphabetically) directory in /media for which
      the corresponding drive has at least 1M available.  Directories in /media have these names:
 
@@ -48,7 +48,7 @@ to the end of one disk and continuing on another.
      ...
      /media/disk_port2-1      disk in USB port 2, partition 1
      ...
-     /media/internal_SD_card  internal SD card
+     /media/SD_card           micro SD card
 
 
 */
@@ -77,7 +77,7 @@ DataSaver.prototype.getRelPath = function (source, timestamp) {
     /*
       Get a string list of path components to a data file; The first component is relative to
       the disk mount point; the last component is the file basename (without extension).
-      
+
       If timestamp is specified as "%", it is replace with strftime-compatible formatting codes
       so a subsequent function can fill in time once it is known.
     */
@@ -111,7 +111,7 @@ DataSaver.prototype.getStream = function(relpath, ext, pathOnly) {
 
     pathOnly: if present and true, does not open a stream, but only
     ensures appropriate directories exist and returns the full path
-        
+
     Return this object:
     {
        stream: the WritableStream to the file
@@ -145,7 +145,7 @@ DataSaver.prototype.getStream = function(relpath, ext, pathOnly) {
 
 DataSaver.prototype.ensureDirs = function(path, n) {
     // for each directory component in the list path starting at n but
-    // ending at path.length - 2, (i.e. excluding the file basename), 
+    // ending at path.length - 2, (i.e. excluding the file basename),
     // make sure the directory up to n exists.
 
     var cumdir = "";
@@ -153,7 +153,7 @@ DataSaver.prototype.ensureDirs = function(path, n) {
     for (i = 0; i < path.length - 1; ++i) {
         cumdir += "/" + path[i];
         if (i >= n) {
-            if (! Fs.existsSync(cumdir)) 
+            if (! Fs.existsSync(cumdir))
                 Fs.mkdirSync(cumdir);
         }
     }
@@ -176,5 +176,5 @@ DataSaver.prototype.devRemoved = function(dev) {
         this.mountedDisks.splice(i, 1);
 }
 
-            
+
 exports.DataSaver = DataSaver;

@@ -62,9 +62,9 @@ foreach my $dev (@devlist) {
 
 # internal: stuff about the beaglebone
 
-chomp(my $usage = `df /media/internal_SD_card | tail -1l`);
+chomp(my $usage = `df /media/SD_card | tail -1l`);
 my ($SKIP,$size,$used,$avail,$used_percent) = split(/[ \t]+/, $usage);
 
-$hub_devs{"internal_SD"} = {(name => "internal_SD_card", filesystem => "ext4", size=>$size, used=>$used, avail=>$avail, used_percent => $used_percent)};
+$hub_devs{"SD_card"} = {(name => "SD_card", filesystem => "vfat", size=>$size, used=>$used, avail=>$avail, used_percent => $used_percent)};
 $hub_devs{"storage"} = `df -t ext4 -t vfat -h -T`;
 print( to_json(\ %hub_devs) . "\n");

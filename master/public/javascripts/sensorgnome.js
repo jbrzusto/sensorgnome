@@ -230,7 +230,7 @@ function onDevinfo (data) {
     devList = data;
     $('#devinfo').empty();
 
-    var isd = devList["internal_SD"];
+    var isd = devList["SD_card"];
     if (isd) {
         $('#devinfo').append("<li><b>Internal:</b> micro SD card with size = " + (isd["size"] * 1024 / 1e9).toFixed() + "GB;   Used = " + isd["used_percent"] + "</li>");
     }

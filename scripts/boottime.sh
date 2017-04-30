@@ -19,7 +19,7 @@ mkdir -p /dev/sensorgnome/usb
 # SG subfolder
 
 pushd /media
-ln -s /dev/sdcard internal_SD_card
+ln -s /dev/sdcard SD_card
 popd
 
 # export gpio pins for use with the adafruit pushbutton LED switch

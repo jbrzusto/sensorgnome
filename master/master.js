@@ -65,7 +65,7 @@ RTLSDR        = require("./rtlsdr.js");
 Deployment = new (require("./deployment.js").Deployment) (
  [
      "/boot/uboot/deployment.txt",
-     "/media/internal_SD_card/deployment.txt",
+     "/media/SD_card/deployment.txt",
      "/home/pi/proj/sensorgnome/plans/deployment.txt"
  ]);
 
