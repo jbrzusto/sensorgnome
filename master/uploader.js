@@ -15,7 +15,7 @@ function Uploader(matron) {
     this.prog_args = [
         "-T",                              // no pseudo-tty
         "-o", "ControlMaster=auto",        // use the already established master control socket
-        "-o", "ControlPath=/tmp/sgremote", 
+        "-o", "ControlPath=/tmp/sgremote",
         "-o", "ServerAliveInterval=5",     // make sure the server is alive
         "-o", "ServerAliveCountMax=3",
         "-i", "/home/bone/.ssh/id_dsa",    // use our unique key, not the factory key
@@ -78,7 +78,7 @@ Uploader.prototype.childDied = function(code, signal) {
 Uploader.prototype.spawnChild = function() {
     if (this.quitting)
         return;
-    
+
     this.child = ChildProcess.spawn(this.prog, this.prog_args, {env: process.env});
     this.child.on("exit", this.this_childDied);
     this.child.on("error", this.this_childDied);
@@ -114,7 +114,7 @@ Uploader.prototype.pushTag = function(s) {
         var nl = this.lineBuf.indexOf('\n');
         if (nl < 0)
             break;
-        var line = this.lineBuf.substring(0, nl - 1);
+        var line = this.lineBuf.substring(0, nl);
         this.lineBuf = this.lineBuf.substring(nl + 1);
         var parts = line.split(/,/);
         // parts are    port,ts,id,freq,freqsd,sig,sigsd,noise,runid,inarow,slop,burstslop,hitrate,antfreq
@@ -125,19 +125,21 @@ Uploader.prototype.pushTag = function(s) {
             parts.splice(8, 2);
             parts.splice(10, 1);
             this.child.stdin.write(parts.join(",") + "\n");
+        } else if (parts.length == 3) {
+            this.child.stdin.write(line + "\n");
         }
     }
 };
 
 Uploader.prototype.pushDevAdded = function(msg) {
     // msg has fields path, attr, stat
-    var ts = (new Date()).getTime()/1000;        
+    var ts = (new Date()).getTime()/1000;
     this.child.stdin.write("A," + ts + "," + msg.attr.port + "," + msg.attr.type + "," + msg.path + "\n");
 };
 
 Uploader.prototype.pushDevRemoved = function(msg) {
     // msg has fields path, attr, stat
-    var ts = (new Date()).getTime()/1000;        
+    var ts = (new Date()).getTime()/1000;
     this.child.stdin.write("R," + ts + "," + msg.attr.port + "," + msg.attr.type + "," + msg.path + "\n");
 };
 

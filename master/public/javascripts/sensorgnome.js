@@ -1,5 +1,5 @@
 /*
-  
+
   sensorgnome.js - client-side code for the SensorGnome.js web interface
 
 */
@@ -7,7 +7,7 @@
 var load1 = function() {
     loadScript("/socket.io/socket.io.js", load2);
 };
-var load2 = function() {  
+var load2 = function() {
     loadScript("/javascripts/jquery.js", load3);
 };
 var load3 = function() {
@@ -41,7 +41,7 @@ function setFreq(n) {
     if (socket) {
         var freq = parseFloat($('#set_freq_button' + n)[0].value);
         socket.emit("clientSetParam", {port:n, par:"-m", val:freq});
-    }      
+    }
 };
 
 var socket;
@@ -75,8 +75,6 @@ var sensorgnomeInit = function() {
         socket.on('newVahData', function(data) {
             VAHBuf = VAHBuf.concat(data.split(/\n/));
             var line = "";
-            var elt = $("#datalog");
-            var top = elt[0].scrollTop;
             while(VAHBuf.length) {
                 var hit = VAHBuf.shift().split(/,/);
                 if (hit.length == 5) {
@@ -84,16 +82,20 @@ var sensorgnomeInit = function() {
                     line += hit[0] + " @" + Math.round(1000*(devList[parseInt(hit[0].substr(1))].realFreq + hit[2]/1000))/1000 + " MHz " + hit[3] +" / " + hit[4] + " dB\n";
                 }
             }
-            elt.append(line);
-            var lines = elt.text().match(/[^\n]*\n/g);
-            if (lines.length > 1000) {
-                lines = lines.slice(lines.length - 1000);
-                elt.text(lines.join(""));
+            if (line.length) {
+                var elt = $("#datalog");
+                var top = elt[0].scrollTop;
+                elt.append(line);
+                var lines = elt.text().match(/[^\n]*\n/g);
+                if (lines.length > 1000) {
+                    lines = lines.slice(lines.length - 1000);
+                    elt.text(lines.join(""));
+                }
+                if ($("#datalogAutoscroll")[0].checked)
+                    elt[0].scrollTop = elt[0].scrollHeight;
+                else
+                    elt[0].scrollTop = top;
             }
-            if ($("#datalogAutoscroll")[0].checked)
-                elt[0].scrollTop = elt[0].scrollHeight;
-            else
-                elt[0].scrollTop = top;
         });
 
         socket.on('gotTag', function(data) {
@@ -106,18 +108,13 @@ var sensorgnomeInit = function() {
                 if (hit.length == 13) {
                     line += (new Date(parseFloat(hit[1]) * 1000)).toISOString().replace(/[ZT]/g," ").substr(11);
                     line += "ant " + hit[0] + " " + hit[2] + " + " + hit[3] + " kHz " + hit[5] + " / " + hit[7] + " dB\n";
+                } else if (hit.length == 3 && hit[0].substr(0, 1) == "T") {
+                    // a bit ugly: Cornell tags are in the VAHdata stream so they get recorded to files on the SG,
+                    // which means they show up here, rather than in the gotTag callback.
+                    reportTag( (new Date(parseFloat(hit[1]) * 1000)).toISOString().replace(/[ZT]/g," ").substr(11) + "ant " + hit[0].substr(1) + " Cornell #" + hit[2] + "\n");
                 }
             }
-            elt.append(line);
-            var lines = elt.text().match(/[^\n]*\n/g);
-            if (lines && lines.length > 1000) {
-                lines = lines.slice(lines.length - 1000);
-                elt.text(lines.join(""));
-            }
-            if ($("#taglogAutoscroll")[0].checked)
-                elt[0].scrollTop = elt[0].scrollHeight;
-            else
-                elt[0].scrollTop = top;
+            reportTag(line);
         });
 
         socket.on('gotParam', function(data) {
@@ -146,13 +143,13 @@ var sensorgnomeInit = function() {
             else
                 elt[0].scrollTop = top;
         });
-      
+
         socket.on('gpsfix', function (data) {
             if(data.lat) $('#gpslat').text(Math.round(10000*Math.abs(data.lat)) / 10000 + "° " + (["N", "S"][0 + (data.lat < 0)]));
             if(data.lon) $('#gpslong').text(Math.round(10000*Math.abs(data.lon)) / 10000 + "° " + (["E", "W"][0 + (data.lon < 0)]));
             if(data.alt) $('#gpsalt').text(Math.round(data.alt) + " m elev.");
         });
-        
+
         socket.on('devinfo', function (data) {
             devList = JSON.parse(data);
             $('#devinfo').empty();
@@ -172,9 +169,9 @@ var sensorgnomeInit = function() {
                     var part = devList[slot]["partitions"];
                     if (part.length == 1) {
                         txt = "Disk: \"" + part[0]["name"] + "\":  Size = " + (part[0]["size"] * 1024 / 1e9).toFixed() + "GB Used = " + part[0]["used_percent"];
-                    } else {           
+                    } else {
                         txt = "Disk with partitions: ";
-                        for (var dev in part) 
+                        for (var dev in part)
                             txt += "\"" + part[dev]["name"] + "\":  Size = " + (part[dev]["size"] * 1024 / 1e9).toFixed(3) + " Used = " + part[dev]["used_percent"]+ ";   ";
                     }
                     break;
@@ -193,6 +190,9 @@ var sensorgnomeInit = function() {
                     txt = "USB audio device: " + devList[slot]["name"];
                     txt += '<span id="raw_audio_span' + slot + '"><audio id="raw_audio' + slot + '" src="/raw_audio?dev=' + slot + '&fm=0&random=' + Math.random() +'" preload="none"></audio></span> <button id="raw_audio_button' + slot + '" type="button" onclick="listenToRaw(' + slot + ')">Listen</button>';
                     break;
+                case "CornellTagXCVR":
+                    txt = devList[slot]["name"];
+                    break;
                 default:
                     txt = "unknown";
                 }
@@ -206,36 +206,36 @@ var sensorgnomeInit = function() {
                 $("#GPSfix").show();
 
         });
-        
+
         function updateUploadStatus(message) {
             $('#softwareUpdateResults').html(message);
         };
-        
+
         $('#updateUploadForm').submit(function() {
             updateUploadStatus('<blink>Uploading the file ... </blink>');
-            
+
             $(this).ajaxSubmit({
-                
+
                 error: function(xhr) {
                     updateUploadStatus('<b>Error: ' + xhr.status + '</b>');
                 },
-                
+
                 success: function(response) {
                     updateUploadStatus(response.toString());
                 }
             });
-            
+
             // Have to stop the form from submitting and causing
             // a page refresh - don't forget this
             return false;
         });
-        
+
         socket.on('lsdata', function(data) {
             $('#lsDataFiles').text(data.toString());
             $('#lsDataFilesRefresh').text('Refresh File Listing');
             $('#lsDataFiles').scrollTop = lsDataFilesScrollTop;
         });
-        
+
         socket.on('vahstatus', function(status) {
             var date = status.date;
             var timeTxt = (new Date(date * 1000)).toISOString().replace("T", "    ").replace("Z", " UTC");
@@ -276,7 +276,7 @@ var sensorgnomeInit = function() {
                         frate = (fcd.totalFrames - oldfcd.totalFrames) / (date - VAHstatus.date);
                         prate = (fcd.plugins[p] - oldfcd.plugins[p]) / (fcd.totalFrames - oldfcd.totalFrames) * fcd.hwRate;
                     } else {
-                        frate = fcd.totalFrames / (date - fcd.startTimestamp);   
+                        frate = fcd.totalFrames / (date - fcd.startTimestamp);
                         prate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
                     }
                     tprate = fcd.plugins[p] / fcd.totalFrames * fcd.hwRate;
@@ -295,8 +295,8 @@ var sensorgnomeInit = function() {
                                                  raw.rate * raw.prevSecondsWritten / (raw.currFileTimestamp - raw.prevFileTimestamp)
                                                  : raw.framesWritten / raw.secondsWritten
                                                 )) / 10;
-                if (frameRate == Infinity) 
-                    // protect against seeing fileWriter before 
+                if (frameRate == Infinity)
+                    // protect against seeing fileWriter before
                     frameRate = rate;
                 wfw += "<b>Audio device in port " + raw.port + "</b> (" + (devList ? devList[raw.port]["name"] : "") + ")<br><ul>";
                 var hmsLeft = new Date((raw.secondsToWrite - raw.secondsWritten)*1000).toTimeString().substring(0, 8);
@@ -313,7 +313,7 @@ var sensorgnomeInit = function() {
             VAHstatus = status;
             $('#VAHstatusTable').html(txt);
         });
-        
+
         socket.on('sgbooted', function(okay) {
             if (okay) {
                 window.scrollTo(0, 0);
@@ -333,13 +333,13 @@ var sensorgnomeInit = function() {
                 $("#rebootStatus").html('<br><br><i><b>Reboot Failed!</b></i>  Try again in a few seconds.');
             }
         });
-        
-        
+
+
         socket.on('plan', function(data) {
             $('#planPath').text(data.planPath);
             $('#planText').text(data.planText);
         });
-        
+
         socket.on('tagDB', function(resp) {
             $('#tag-database-name').text(resp.file);
             if (resp.err) {
@@ -370,17 +370,35 @@ var sensorgnomeInit = function() {
             }
             $('#tagDBText').text(table);
         });
-        
+
         socket.on('softwareUpdateResults', function(data) {
             updateUploadStatus(data.toString());
         });
     });
-    
+
     socket.on('softwareUpdateResults', function(data) {
         $('#softwareUpdateResults').text(data.toString());
     });
     socket.emit('vahstatus');
     socket.emit('gpsfix');
 };
+
+function reportTag(line) {
+    var elt = $("#taglog");
+    var top = elt[0].scrollTop;
+    elt.append(line);
+    var lines = elt.text().match(/[^\n]*\n/g);
+    if (lines && lines.length > 1000) {
+        lines = lines.slice(lines.length - 1000);
+        elt.text(lines.join(""));
+    }
+    if ($("#taglogAutoscroll")[0].checked)
+        elt[0].scrollTop = elt[0].scrollHeight;
+    else
+        elt[0].scrollTop = top;
+    // ensure we're displaying the live tags window
+    $("#LivePluginData").show();
+};
+
 
 load1();

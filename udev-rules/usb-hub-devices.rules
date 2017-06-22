@@ -1,0 +1,160 @@
+# Detect devices attached to the USB hub or directly to the beaglebone.
+# We need to know which USB port each device is in, so we can
+# label data streams appropriately.
+# (e.g. assign a physical antenna or microphone ID to each audio stream)
+#
+# USB Hub:
+#   create symlink in /dev/usb_hub_port_nums.txt to a file giving the map
+#   between usb device path and port number.  Only works for hubs we've
+#   created these files for.
+#
+# Disk drives:
+#   mount under /media/disk.port=X.name=Y
+#   make alias at /dev/bonedongle/disk.port=X.name=Y
+#
+# GPS:
+#   make alias at /dev/bonedongle/gps.port=X
+#
+# Audio device (e.g. funcube)
+#   make alias at /dev/bonedongle/DDD.port=X.alsaDev=Y.usbPath=Z
+#   where DDD is one of:
+#    funcubePro
+#    funcubeProPlus
+#    usbAudio
+#
+# Heavily modified from Arch linux file media-by-label-auto-mount.rules
+
+# uncomment the following block for debug info
+#ACTION=="add",IMPORT{program}="/bin/sh -c 'echo Add %p %k >> /tmp/rules.txt'",GOTO="main"
+#ACTION=="remove",IMPORT{program}="/bin/sh -c 'echo Remove %p %k >> /tmp/rules.txt'",GOTO="main"
+#ACTION=="change",IMPORT{program}="/bin/sh -c 'echo Change %p %k >> /tmp/rules.txt'",GOTO="main"
+#IMPORT{program}="/bin/sh -c 'echo Unknown %p %k >> /tmp/rules.txt'"
+
+SUBSYSTEM!="usb",GOTO="not_usb_hub"
+
+## detect USB hubs
+LABEL="main"
+KERNEL!="1-1",GOTO="not_usb_hub"
+ACTION=="add",ATTR{idVendor}=="1a40",ATTR{idProduct}=="0201",GOTO="GWC_HU2SA0R"
+ACTION=="add",ATTR{idVendor}=="05e3",ATTR{idProduct}=="0610",GOTO="DLINK_DUBH7"
+ACTION=="add",ATTR{idVendor}=="0835",ATTR{idProduct}=="8500",GOTO="DLINK_DUBH7_C1"
+ACTION=="add",ATTR{idVendor}=="050d",ATTR{idProduct}=="0416",GOTO="STAPLES_BELKIN"
+ACTION!="remove",GOTO="done"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+LABEL="GWC_HU2SA0R"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_GWC_HU2SA0R_portnums.txt /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+LABEL="DLINK_DUBH7"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_portnums.txt /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+LABEL="DLINK_DUBH7_C1"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_DLINK_DUBH7_C1_portnums.txt /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+LABEL="STAPLES_BELKIN"
+IMPORT{program}="/bin/rm -f /dev/usb_hub_port_nums.txt"
+IMPORT{program}="/bin/ln -s /home/bone/proj/bonedongle/udev-rules/hub_STAPLES_BELKIN_portnums.txt /dev/usb_hub_port_nums.txt"
+GOTO="done"
+
+####################  END OF HUB DETECTION #######################
+LABEL="not_usb_hub"
+###################  START OF DISK DETECTION #####################
+
+KERNEL!="sd[a-z][0-9]",KERNEL!="sd[a-z]",GOTO="not_disk"
+ACTION!="add", GOTO="not_add_disk"
+# don't try to mount the root device itself
+KERNEL!="sd[a-z][0-9]",GOTO="done"
+IMPORT{program}="/sbin/blkid -o udev -p %N"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+
+# Disk: import FS info
+ENV{mount_dir}="disk_port%E{PORT_NUM}-%n"
+ENV{disk_name}="disk.port=%E{PORT_NUM}.name=%k.mount=%E{mount_dir}"
+# Global mount options
+ENV{mount_options}="defaults,relatime,users"
+# Filesystem-specific mount options
+ENV{ID_FS_TYPE}=="vfat", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8,flush"
+ENV{ID_FS_TYPE}=="ext4", ENV{mount_options}="%E{mount_options},group,users,suid"
+ENV{ID_FS_TYPE}=="ntfs", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8 -tntfs-3g"
+SYMLINK+="bonedongle/%E{disk_name}"
+
+# Mount the device
+MODE:="0666"
+ENV{PORT_NUM}!="",RUN+="/bin/mkdir -p /media/%E{mount_dir}", RUN+="/bin/mount -o %E{mount_options} /dev/%k /media/%E{mount_dir}"
+GOTO="done"
+
+LABEL="not_add_disk"
+# Clean up after removal
+ACTION!="remove",GOTO="done"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+ENV{mount_dirs}="disk_port%E{PORT_NUM}*"
+ENV{PORT_NUM}!="",RUN+="/bin/sh -c 'for DEV in /media/%E{mount_dirs}; do umount -l $DEV; rmdir $DEV; done'"
+GOTO="done"
+
+###################  END OF DISK DETECTION #####################
+LABEL="not_disk"
+################# START OTHER DEVICE DETECTION #################
+
+## detect Cornell tag XCVR via FTDI FT232
+ACTION=="add",SUBSYSTEM=="tty",ATTRS{idVendor}=="0403",ATTRS{idProduct}=="6001",ENV{MYDEVNAME}="CornellTagXCVR",GOTO="CornellTagXCVR"
+
+## detect funcube dongles
+ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb56",ENV{MYDEVNAME}="funcubePro",GOTO="usbaudio"
+ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb31",ENV{MYDEVNAME}="funcubeProPlus",GOTO="usbaudio"
+
+## detect PL2303 serial port and assume it's a GPS (FIXME!)
+ACTION=="add",SUBSYSTEM=="tty",ATTRS{idVendor}=="067b",ATTRS{idProduct}=="2303",KERNEL=="tty*",GOTO="pl2303gps"
+
+## detect sensorgnome PPSGPS (with our own custom local VID/PID)
+ACTION=="add",SUBSYSTEM=="tty",ATTRS{idVendor}=="bd09",ATTRS{idProduct}=="0001",GOTO="sg_ppsgps"
+
+## any other sound device is assumed to be USB audio
+ACTION=="add",SUBSYSTEMS=="sound",ENV{MYDEVNAME}="usbAudio",GOTO="usbaudio"
+
+## otherwise, we ignore this event
+GOTO="done"
+
+# Cornell (Gabrielson & Winkler) Tag Transceiver
+# line settings: 115200 raw
+
+LABEL="CornellTagXCVR"
+IMPORT{program}="/bin/sh -c '(sleep 2; /bin/stty -F /dev/ttyUSB%n 115200 raw &);/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+MODE:="0666"
+ENV{PORT_NUM}!="",SYMLINK+="bonedongle/CornellTagXCVR.port=%E{PORT_NUM}"
+GOTO="done"
+
+# pl2303gps serial port: add a link indicating which port the device is in
+LABEL="pl2303gps"
+# because the device node hasn't been set up yet, we need to run the
+IMPORT{program}="/home/bone/proj/bonedongle/scripts/set_gps_device.sh ttyUSB%n %p"
+MODE:="0666"
+ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=0"
+GOTO="done"
+
+# sensorgnome PPSGPS: a US Globalsat MR350P serial GPS interfaced via an FTDI EVAL232R board,
+# with PPS signal going directly to GPIO pin 48 (= pin 15 on jumper P9)
+LABEL="sg_ppsgps"
+IMPORT{program}="/sbin/modprobe ftdi_sio product=0x0001 vendor=0xbd09"
+
+IMPORT{program}="/home/bone/proj/bonedongle/scripts/set_gps_device.sh ttyUSB%n %p"
+
+MODE:="0666"
+ENV{PORT_NUM}!="",SYMLINK+="bonedongle/gps.port=%E{PORT_NUM}.pps=1"
+GOTO="done"
+
+# any usb audio device
+LABEL="usbaudio"
+MODE:="0666"
+IMPORT{program}="/usr/bin/awk -f /home/bone/proj/bonedongle/scripts/get_usb_device_port_number.awk %p"
+DRIVERS=="usb",KERNEL=="controlC[0-9]",SYMLINK+="bonedongle/%E{MYDEVNAME}.port=%E{PORT_NUM}.alsaDev=%n.usbPath=%s{busnum}:%s{devnum}"
+GOTO="done"
+
+LABEL="done"
+# Exit

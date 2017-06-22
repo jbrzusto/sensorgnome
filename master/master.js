@@ -57,6 +57,7 @@ WebServer     = new (require('./webserver.js')).WebServer(TheMatron);
 
 Schedule      = require('./schedule.js');
 USBAudio      = require('./usbaudio.js');
+CornellTagXCVR = require('./cornelltagxcvr.js');
 //WavMaker      = require('./wavmaker.js');
 
 Deployment = new (require("./deployment.js").Deployment) (
@@ -71,8 +72,8 @@ Deployment = new (require("./deployment.js").Deployment) (
 
 Deployment.shortLabel = Deployment.shortLabel.replace(/-/g,"_");
 
-TagFinder     = new (require('./tagfinder.js').TagFinder) (TheMatron, 
-                                                           "/home/bone/proj/bonedongle/find_tags/find_tags_unifile", 
+TagFinder     = new (require('./tagfinder.js').TagFinder) (TheMatron,
+                                                           "/home/bone/proj/bonedongle/find_tags/find_tags_unifile",
                                                            TheMatron.tagDBFile,
                                                            Deployment.module_options.find_tags.params
                                                           );
@@ -132,4 +133,3 @@ WebServer.start();
 // Start the tagFinder
 
 TagFinder.start();
-

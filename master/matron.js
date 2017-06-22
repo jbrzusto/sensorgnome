@@ -11,7 +11,7 @@ Matron = function() {
     this.devices = [];
 
     // callback closures
-    this.this_devAdded = this.devAdded.bind(this); 
+    this.this_devAdded = this.devAdded.bind(this);
     this.this_VAHdied = this.VAHdied.bind(this);
 
     this.on("devAdded", this.this_devAdded);
@@ -21,7 +21,7 @@ Matron = function() {
 
 Util.inherits(Matron, Events.EventEmitter);
 
-Matron.prototype.funcubeProPlusOptions = 
+Matron.prototype.funcubeProPlusOptions =
     {
         // options to the fcd parameter setting program for FCD Pro +
         frequency:  "-m",
@@ -33,7 +33,7 @@ Matron.prototype.funcubeProPlusOptions =
         bias_tee:   ["-w", "0x10"]
     };
 
-Matron.prototype.funcubeProOptions = 
+Matron.prototype.funcubeProOptions =
     {
         // options to the fcd parameter setting program for FCD Pro
         frequency:    "-m",
@@ -71,6 +71,10 @@ Matron.prototype.devAdded = function(dev) {
             this.devices.push(new USBAudio.USBAudio(this, dev, devPlan));
             break;
         }
+    }
+// for CornellTagXCVR, we don't require or use a plan
+    if (dev.attr.type == "CornellTagXCVR") {
+        this.devices.push(new CornellTagXCVR.CornellTagXCVR(this, dev, null));
     }
 };
 
