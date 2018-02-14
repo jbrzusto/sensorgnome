@@ -11,6 +11,7 @@
 
 BEGIN {
     devpath = ARGV[1];
+## DEBUGGING:    printf "Trying to get PORT_NUM for %s\n", devpath >> "/tmp/rules.txt";
 
     port_name_file = "/dev/usb_hub_port_nums.txt";
     port_number = "internal";
@@ -22,4 +23,5 @@ BEGIN {
         }
     }
     printf "PORT_NUM=%d\n", port_number;
+## DEBUGGING:    printf "Got PORT_NUM=%d for %s\n", port_number, devpath >> "/tmp/rules.txt";
 }
