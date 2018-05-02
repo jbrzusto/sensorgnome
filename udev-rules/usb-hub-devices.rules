@@ -148,6 +148,9 @@ LABEL="not_disk"
 ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb56",ENV{MYDEVNAME}="funcubePro",GOTO="usbaudio"
 ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb31",ENV{MYDEVNAME}="funcubeProPlus",GOTO="usbaudio"
 
+## detect RPi AMA0 (which we assume is the Pi GPS Hat)
+ACTION=="add",KERNEL=="ttyAMA0",SYMLINK+="gps%n", TAG+="systemd", ENV{SYSTEMD_WANTS}="gpsdctl@%k.service",GOTO="done"
+
 ## detect PL2303 serial port and assume it's a GPS (FIXME!)
 ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="067b",ATTRS{idProduct}=="2303",KERNEL=="tty*",GOTO="pl2303gps"
 
