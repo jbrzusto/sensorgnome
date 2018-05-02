@@ -120,7 +120,7 @@ IMPORT{program}="/usr/bin/awk -f /home/pi/proj/sensorgnome/scripts/get_usb_devic
 ENV{mount_dir}="disk_port%E{PORT_NUM}-%n"
 ENV{disk_name}="disk.port=%E{PORT_NUM}.name=%k.mount=%E{mount_dir}"
 # Global mount options
-ENV{mount_options}="defaults,relatime,users"
+ENV{mount_options}="defaults,noatime,users"
 # Filesystem-specific mount options
 ENV{ID_FS_TYPE}=="vfat", ENV{mount_options}="%E{mount_options},gid=100,umask=002,utf8,flush"
 ENV{ID_FS_TYPE}=="ext4", ENV{mount_options}="%E{mount_options},group,users,suid"
