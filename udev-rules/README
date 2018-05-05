@@ -111,3 +111,19 @@ port num   Kernel path (%p parameter in udev rules)  Staples/Belkin 7-port
    6       /devices/platform/omap/musb-ti81xx/musb-hdrc.1/usb1/1-1/1-1.6
    7       /devices/platform/omap/musb-ti81xx/musb-hdrc.1/usb1/1-1/1-1.7
 
+------------ UUGEAR (http://uugear.com) 7 port Pi Hub ---------------------
+
+Terminus Tech 7-port hub plugged into port 4 of RPI-2.
+This device looks like this in lsusb:
+   ID 1a40:0201 Terminus Technology Inc. FE 2.1 7-port Hub
+In this situation, ports 1-3 of the Pi are still labelled 1, 2, and 3,
+but the 7 ports on the hub are labelled like this:
+
+   6  5  4
+   +======
+ 7 |     |
+   +======
+   8  9  0
+
+(i.e. the 1st port on the hub replaces port 4 on the Pi)
+
