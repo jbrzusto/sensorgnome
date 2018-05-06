@@ -47,7 +47,7 @@ foreach my $dev (@devlist) {
                             size => $size, used=>$used, avail => $avail, used_percent => $used_percent )};
 
         if ($hub_devs{$attrs{port}}) {
-            push ($hub_devs{$attrs{port}}{"partitions"}, $this_disk);
+            push (@{$hub_devs{$attrs{port}}{"partitions"}}, $this_disk);
         } else {
             $hub_devs{$attrs{port}} = {( type=> "disk", partitions => [( $this_disk)] )};
         }
