@@ -241,7 +241,7 @@ ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb56"
 ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="04d8",ATTRS{idProduct}=="fb31",ENV{MYDEVNAME}="funcubeProPlus",GOTO="usbaudio"
 
 ## detect RPi AMA0 (which we assume is the Pi GPS Hat)
-ACTION=="add",KERNEL=="ttyAMA0",SYMLINK+="gps%n", TAG+="systemd", ENV{SYSTEMD_WANTS}="gpsdctl@%k.service",GOTO="done"
+ACTION=="add",KERNEL=="ttyAMA0",GOTO="adafruit_gps_hat"
 
 ## detect PL2303 serial port and assume it's a GPS (FIXME!)
 ACTION=="add",SUBSYSTEMS=="usb",ATTRS{idVendor}=="067b",ATTRS{idProduct}=="2303",KERNEL=="tty*",GOTO="pl2303gps"
@@ -254,6 +254,14 @@ ACTION=="add",SUBSYSTEMS=="sound",ENV{MYDEVNAME}="usbAudio",GOTO="usbaudio"
 
 ## otherwise, see whether it's an rtlsdr dongle
 GOTO="rtlsdr"
+
+# adafruit GPS hat for Pi
+LABEL="adafruit_gps_hat"
+SYMLINK+="gps%n"
+SYMLINK+="sensorgnome/gps.port=0.pps=1.type=hat"
+TAG+="systemd"
+ENV{SYSTEMD_WANTS}="gpsdctl@%k.service"
+GOTO="done"
 
 # pl2303gps serial port: add a link indicating which port the device is in
 LABEL="pl2303gps"

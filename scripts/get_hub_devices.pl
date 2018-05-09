@@ -47,14 +47,16 @@ foreach my $dev (@devlist) {
                             size => $size, used=>$used, avail => $avail, used_percent => $used_percent )};
 
         if ($hub_devs{$attrs{port}}) {
-            push ($hub_devs{$attrs{port}}{"partitions"}, $this_disk);
+            push (@{$hub_devs{$attrs{port}}{"partitions"}}, $this_disk);
         } else {
             $hub_devs{$attrs{port}} = {( type=> "disk", partitions => [( $this_disk)] )};
         }
     } elsif ($devname =~ /gps/) {
-        if ("$attrs{type}" eq "cape") {
+        if ("$attrs{type}" eq "hat") {
             $hub_devs{"-1"} = {( name=> "Adafruit GPS hat with PPS", type => "gps")};
-        } else {
+        } elsif ("$attrs{type}" eq "cape") {
+            $hub_devs{"-1"} = {( name=> "Compudata / Adafruit GPS cape with PPS", type => "gps")};
+        } else{
             $hub_devs{$attrs{port}} = {( name=> "USB GPS receiver" . ($attrs{pps} ? " with PPS" : ""), type => "gps")};
         }
     }
