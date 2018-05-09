@@ -51,6 +51,10 @@ function WebServer(matron) {
     this.this_requestedSetClock             = this.requestedSetClock.bind(this);
     this.this_softwareUpdateUploadCompleted = this.softwareUpdateUploadCompleted.bind(this);
     this.this_uploadSoftwareUpdate          = this.uploadSoftwareUpdate.bind(this);
+    this.this_pushSweepMetadata             = this.pushSweepMetadata.bind(this);
+    this.this_pushSweepJpeg                 = this.pushSweepJpeg.bind(this);
+    this.this_haveSweep                     = this.haveSweep.bind(this);
+
 };
 
 // function for ignoring response from e.g. a childprocess
@@ -282,6 +286,10 @@ WebServer.prototype.clientDisconnected = function () {
         delete this.rawStream;
         this.rawStream = null;
     }
+    if (this.sweepWatcher) {
+        this.sweepWatcher.close()
+        this.sweepWatcher = null;
+    };
 };
 
 WebServer.prototype.pushData = function (data) {
@@ -293,6 +301,25 @@ WebServer.prototype.pushData = function (data) {
 WebServer.prototype.setParamError = function (data) {
     if (this.sock) {
         this.sock.emit('setParamError', data);
+    }
+};
+
+WebServer.prototype.haveSweep = function (event, filename) {
+    if (filename == "haveSweep") {
+        Fs.readFile("/dev/shm/sweep.json", this.this_pushSweepMetadata);
+    }
+};
+
+WebServer.prototype.pushSweepMetadata = function (err, data) {
+    if (!err && this.sock) {
+        this.sock.emit('sweepMetadata', data.toString());
+        Fs.readFile("/dev/shm/sweep.jpg", this.this_pushSweepJpeg);
+    }
+};
+
+WebServer.prototype.pushSweepJpeg = function (err, data) {
+    if (!err && this.sock) {
+        this.sock.emit('sweepJpeg', data);
     }
 };
 
@@ -321,6 +348,8 @@ WebServer.prototype.handleWebConnection = function (socket) {
         this.matron.on('devRemoved'   , this.this_deviceInfoChanged);
         this.matron.on('vahData'      , this.this_pushData);
         this.haveRegisteredListeners = true;
+        // register a watcher for new sweeps in /dev/shm
+        this.sweepWatcher = Fs.watch("/dev/shm/messages", this.this_haveSweep);
     };
 
     this.sendMachineInfo();

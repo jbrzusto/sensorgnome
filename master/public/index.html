@@ -205,5 +205,43 @@
             </thead>
           </table>
       </div>
+      <div class="radar_info">
+        <img id="sweepJpeg" width=1000 height=1000 ></img>
+        <br>
+        <span id="sweepMetadata"></span>
+      </div>
+      <script id="tpl_radar_info" type="text/html">
+      {{! template to render radar information}}
+      {{=⟦ ⟧=}}
+      <ul>
+        <li>Sweep time: ⟦ts⟧</li>
+      </ul>
+
+      <table class="recv_files_table_table">
+        <tr class="recv_files_table_heading">
+          <th>fileID</th>
+          <th>bootnum</th>
+          <th>monoBN</th>
+          <th>name</th>
+          <th>contentSize</th>
+          <th>fileSize</th>
+          <th>jobID</th>
+        </tr>
+      ⟦#fileDetails⟧
+        <tr class="recv_files_table_row">
+          <td>⟦fileID⟧</td>
+          <td>⟦bootnum⟧</td>
+          <td>⟦monoBN⟧</td>
+          <td><span class="download_recv_file" serno="⟦serno⟧" fileID="⟦fileID⟧">⟦name⟧</span></td>
+          <td class="byte_count">⟦contentSize⟧</td>
+          <td class="byte_count">⟦fileSize⟧</td>
+          <td ⟦&jobIDattr⟧>⟦jobID⟧</td>
+        </tr>
+      ⟦/fileDetails⟧
+      ⟦^fileDetails⟧
+      (no files on server for this receiver and day)
+      ⟦/fileDetails⟧
+      </table>
+    </script>
   </body>
 </html>

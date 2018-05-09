@@ -224,6 +224,7 @@ function onGpsfix (data) {
     if(data.lat) $('#gpslat').text(Math.round(10000*Math.abs(data.lat)) / 10000 + "° " + (["N", "S"][0 + (data.lat < 0)]));
     if(data.lon) $('#gpslong').text(Math.round(10000*Math.abs(data.lon)) / 10000 + "° " + (["E", "W"][0 + (data.lon < 0)]));
     if(data.alt) $('#gpsalt').text(Math.round(data.alt) + " m elev.");
+    if(data.time) gotDate(new Date(data.time).getTime()/1000.0);
 };
 
 function onDevinfo (data) {
@@ -322,8 +323,7 @@ function onLsdata (data) {
     $('#lsDataFiles').scrollTop = lsDataFilesScrollTop;
 };
 
-function onVahstatus (status) {
-    var date = status.date;
+function gotDate (date) {
     var timeTxt = (new Date(date * 1000)).toISOString().replace("T", "    ").replace("Z", " UTC");
     if (GPS && GPS.name.match(/PPS/) && status.ppsCount !== null) {
         timeTxt += (status.clockSyncDigits < 0) ? ' clock not yet set by GPS ' : (' accurate to ' + Math.pow(10, -status.clockSyncDigits) + ' seconds');
@@ -336,6 +336,11 @@ function onVahstatus (status) {
         timeTxt += (' <span id="pps" style="color: ' + (ppsOK ? "green" : "red") + '">PPS ' + (ppsOK ? "present" : "missing") + '</span>');
     }
     $('#sgtime').html(timeTxt);
+};
+
+function onVahstatus (status) {
+    var date = status.date;
+    gotDate(date);
     var tabHdr="<table><tr><th>USB Port #</th><th>Hardware<br>Frame Rate (kHz)<br>Obs. / Set</th><th>Plugin<br>Frame Rate (kHz)<br>Obs. / Set</th><th>Channels</th><th>Plugin</th><th>Current<br>Feature Detection Rate<br>pulses per minute</th><th>Long-term<br>Feature Detection Rate<br>pulses per minute</th><th>(Re)Started</th></tr>";
     var txt = "";
     for (n in status) {
@@ -460,6 +465,19 @@ function onTagDB(resp) {
     $('#tagDBText').text(table);
 };
 
+function onSweepMetadata (data) {
+    meta = JSON.parse(data.toString());
+    $("#sweepMetadata").text(meta.np / meta.extra.ntrigs);
+};
+
+function onSweepJpeg (data) {
+    var arrayBufferView = new Uint8Array( data );
+    var blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+    var urlCreator = window.URL || window.webkitURL;
+    var imageUrl = urlCreator.createObjectURL( blob );
+    $("#sweepJpeg").attr('src', imageUrl);
+};
+
 var sensorgnomeInit = function() {
     $(document).ready(function() {
         socket = io.connect();
@@ -477,6 +495,8 @@ var sensorgnomeInit = function() {
         socket.on('plan', onPlan);
         socket.on('tagDB', onTagDB);
         socket.on('softwareUpdateResults', onSoftwareUpdateResults);
+        socket.on('sweepMetadata', onSweepMetadata);
+        socket.on('sweepJpeg', onSweepJpeg);
 
         $('#updateUploadForm').submit(submitUpdateUploadForm);
         socket.on('connect', function() {

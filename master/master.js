@@ -52,13 +52,13 @@ TheMatron.tagDBFile = Fs.existsSync("/boot/uboot/SG_tag_database.sqlite") ?
 // Load singleton objects
 GPS           = new (require('./gps.js').GPS)       (TheMatron);
 HubMan        = new (require('./hubman.js').HubMan) (TheMatron, "/dev/sensorgnome");
-VAH           = new (require('./vah.js').VAH)       (TheMatron, "/usr/bin/vamp-alsa-host", "VAH.sock");
+//VAH           = new (require('./vah.js').VAH)       (TheMatron, "/usr/bin/vamp-alsa-host", "VAH.sock");
 WebServer     = new (require('./webserver.js')).WebServer(TheMatron);
 
 Schedule      = require('./schedule.js');
 Sensor        = require('./sensor.js');
-USBAudio      = require("./usbaudio.js");
-RTLSDR        = require("./rtlsdr.js");
+//USBAudio      = require("./usbaudio.js");
+//RTLSDR        = require("./rtlsdr.js");
 
 //WavMaker      = require('./wavmaker.js');
 
@@ -90,7 +90,7 @@ Uploader = new (require('./uploader.js').Uploader) (TheMatron);
 
 Relay = new (require('./relay.js').Relay) (TheMatron, 59000);
 
-var clockNotSet = true;
+var clockNotSet = false;
 
 function do_nothing(err, stdout, stderr) {
 };
