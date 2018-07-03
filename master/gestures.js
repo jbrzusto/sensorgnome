@@ -108,7 +108,6 @@ function quitProcess () {
         return;
     exit = true;
     b.stopAllBlinkers();
-    b.set(0);
     process.exit(0);
 };
 
