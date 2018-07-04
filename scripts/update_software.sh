@@ -13,7 +13,7 @@ if [[ ! -f $UPDATE_FILE ]]; then
 fi;
 
 cd /
-tar -xpjvf $UPDATE_FILE
+tar -xhpjvf $UPDATE_FILE
 rm -f $DISABLED_UPDATE_FILE
 mv $UPDATE_FILE ${DISABLED_UPDATE_FILE}
 
