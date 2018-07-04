@@ -43,10 +43,10 @@ stty -F $GPS raw 9600 min 0 time 100
 MAXTIME=120 ## maximum time (in seconds) before we accept there's no gps cape
 HAVECAPE=0
 
-TS_START=`date +%s`
+TS_START=`cat /proc/uptime | sed -e 's/\..*$//'`
 TS_DONE=$(( $TS_START + $MAXTIME ))
 export IFS=","
-while (( ! $HAVECAPE && `date +%s` < $TS_DONE )); do
+while (( ! $HAVECAPE && `cat /proc/uptime | sed -e 's/\..*$//'` < $TS_DONE )); do
     read -t5  RMC HHMMSS C LAT D LON E F G DDMMYY H I J REST < $GPS
     if [[ "${RMC:0:3}" == '$GP' ]]; then
         HAVECAPE=1
