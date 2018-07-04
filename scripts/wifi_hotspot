@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# turn wifi hotspot on or off
+#
+# Usage: wifi_hotspot [on|off]
+
+if [[ "$1" == "off" ]]; then
+    systemctl stop hostapd
+    systemctl stop dnsmasq
+    sleep 2
+    ifdown wlan0
+    ifconfig wlan0 down
+    export NETCONF=/boot/uboot/network.txt;
+    # if network.txt exists, and does not have a line like 'WiFiClient = no', then
+    # re-enable wifi client
+
+    if [[ -f $NETCONF && ! $( grep -i --perl '(?i)^\s*wifi\s*client\s*=\s*no' $NETCONF ) ]]; then
+        sleep 1
+        ## weird up/down initialization seems necessary
+        rmmod brcmfmac
+        sleep 3
+        modprobe brcmfmac
+        ifconfig wlan0 up
+        ifup wlan0
+        ## immediately try to reconnect to server
+        /home/pi/proj/sensorgnome/scripts/maintain_ssh_tunnel
+    fi
+else
+    killall autossh ssh
+    ifdown wlan0
+    sleep 1
+    ifconfig wlan0 up
+    sleep 3
+    ifconfig wlan0 down
+    ifup -i /etc/network/wifi_hotspot wlan0
+    sleep 1
+    systemctl start dnsmasq
+    sleep 1
+    systemctl start hostapd
+fi

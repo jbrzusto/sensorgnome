@@ -94,10 +94,8 @@ sync
 # maybe do a software update
 /home/pi/proj/sensorgnome/scripts/update_software.sh
 
-# if there's a network.txt file on the boot drive, read the essid and pass phrase
-if [[ -f /boot/uboot/network.txt ]]; then
-    /home/pi/proj/sensorgnome/scripts/getnetwork
-fi
+# configure the Wifi network acording to user preferences in
+/home/pi/proj/sensorgnome/scripts/getnetwork
 
 # If this SG is not yet registered, then add an appropriate entry to
 # the system crontab vi /etc/cron.d

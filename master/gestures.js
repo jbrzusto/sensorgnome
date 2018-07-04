@@ -51,6 +51,8 @@ Child_process = require("child_process");
 Pushbtn = require("/home/pi/proj/sensorgnome/master/pushbtn").Pushbtn;
 var b = new Pushbtn(null, "/sys/class/gpio/gpio18/value", "/sys/class/gpio/gpio17/value");
 
+var Wifi_Hotspot = "/home/pi/proj/sensorgnome/scripts/wifi_hotspot";
+
 // turn the LED off to start
 b.set(0);
 
@@ -115,7 +117,9 @@ function toggleWiFi() {
     if (wifi) {
         b.stopBlinker(wifi);
         b.set(0);
-        Child_process.exec("systemctl stop hostapd; ifdown wlan0");
+        // turn off WiFi hotspot; if configured in /boot/uboot/network.txt,
+        // this will switch over to operation as a wifi client
+        Child_process.execFile(Wifi_Hotspot, ["off"]);
         wifi = 0;
         if (wifiTimeout) {
             clearTimeout(wifiTimeout)
@@ -123,7 +127,9 @@ function toggleWiFi() {
         }
     } else {
         wifi = b.blinker({state: 1, duty:[0.9]});
-        Child_process.exec("ifup wlan0; systemctl start hostapd");
+        // turn on the WiFi hotspot.  This will disable operation as a wifi client.
+        Child_process.execFile(Wifi_Hotspot, ["on"]);
+        Child_process.exec("");
         wifiTimeout = setTimeout(toggleWiFi, wifiTimeoutMinutes * 60 * 1000);
     }
 };

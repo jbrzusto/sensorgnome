@@ -1,39 +1,67 @@
 #!/usr/bin/python
 # -*- Mode:Python; indent-tabs-mode:nil; tab-width:4 -*-
 
-# Grab an essid and passphrase from /boot/uboot/networks.txt
-# and replace current entries for wlan0 in /etc/network/interfaces
+# If /boot/uboot/network.txt exists, grab an essid and passphrase
+# from it and set up the SG as a WiFi client. unless it contains
+# a line like WiFiClient = no
+# If /boot/uboot/no_network.txt exists, set up the SGPi as a
+# WiFi hotspot.
+# If neither file exists, do nothing.
 
 import io
 import re
+import os
+import errno
 
-USER_NETWORK_CONF_FILE = "/boot/uboot/network.txt"
-INTERFACES_FILE = "/etc/network/interfaces"
+def force_symlink(file1, file2):
+    try:
+        os.symlink(file1, file2)
+    except OSError, e:
+        if e.errno == errno.EEXIST:
+            os.remove(file2)
+            os.symlink(file1, file2)
 
-i = 0
-with open(USER_NETWORK_CONF_FILE, "r") as fin:
-     for line in fin:
-          line = line.rstrip().lstrip() # remove leading and trailing whitespace
-          if len(line) == 0 or line[0] == '#':
-               continue
-          if i == 0:
-               essid = line
-               i = 1
-          else:
-               psk = line
-               break
 
-if essid and psk:
-     print("Doing it")
-     intf = open(INTERFACES_FILE, "r")
-     conf = intf.read()
-     intf.close()
-     conf = re.sub('\n[ \t]*wpa-essid[ \t]+[^\n]*\n',
-            '\nwpa-essid "%s"\n' % essid,
-            conf)
-     conf = re.sub('\n[ \t]*wpa-psk[ \t]+[^\n]*\n',
-            '\nwpa-psk "%s"\n' % psk,
-            conf)
-     intf = open(INTERFACES_FILE, "w")
-     intf.write(conf)
-     intf.close()
+WIFI_CONF_FILE = "/boot/uboot/network.txt"
+CLIENT_INTERFACES_FILE = "/etc/network/wifi_client"
+HOTSPOT_INTERFACES_FILE = "/etc/network/wifi_hotspot"
+INTERFACES_WIFI_LINK = "/etc/network/interfaces.d/wifi"
+
+wificlient = False
+essid=""
+psk=""
+
+if os.path.exists(WIFI_CONF_FILE):
+    wificlient = True
+    with open(WIFI_CONF_FILE, "r") as fin:
+        for line in fin:
+            line = line.rstrip().lstrip() # remove leading and trailing whitespace
+            if len(line) == 0 or line[0] == '#':
+                continue
+            m = re.match("(?i)^wifi\s*client\s*=\s*(.*)$", line)
+            if m:
+                wificlient = m.groups()[0].lower() != "no"
+                continue
+            if not essid:
+                essid = line
+                continue
+            if not psk:
+                psk = line
+
+        if wificlient and essid and psk:
+            intf = open(CLIENT_INTERFACES_FILE, "r")
+            conf = intf.read()
+            intf.close()
+            conf = re.sub('\n[ \t]*wpa-e?ssid[ \t]+[^\n]*\n',
+                          '\nwpa-essid "%s"\n' % essid,
+                          conf)
+            conf = re.sub('\n[ \t]*wpa-(psk|passphrase)[ \t]+[^\n]*\n',
+                          '\nwpa-passphrase "%s"\n' % psk,
+                          conf)
+            intf = open(CLIENT_INTERFACES_FILE, "w")
+            intf.write(conf)
+            intf.close()
+            force_symlink(CLIENT_INTERFACES_FILE, INTERFACES_WIFI_LINK)
+            os.system('ifdown wlan0; ifconfig wlan0 down; ifconfig wlan0 up; ifup wlan0')
+        else:
+            force_symlink(HOTSPOT_INTERFACES_FILE, INTERFACES_WIFI_LINK)

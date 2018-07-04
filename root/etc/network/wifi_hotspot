@@ -1,0 +1,11 @@
+# IP address for SG-RPi3 via wiFi: 192.168.7.2
+allow-hotplug wlan0
+iface wlan0 inet static
+    address 192.168.7.2
+    netmask 255.255.255.0
+    network 192.168.7.0
+    broadcast 192.168.7.255
+# disable power management on wifi adapter when on
+    pre-up iw dev wlan0 set power_save off
+    post-down iw dev wlan0 set power_save on
+

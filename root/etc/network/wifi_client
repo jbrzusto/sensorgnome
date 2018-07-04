@@ -1,0 +1,8 @@
+allow-hotplug wlan0
+iface wlan0 inet dhcp
+wpa-essid "MyNetwork"
+wpa-passphrase "my network passphrase"
+# disable power management on wifi adapter when on
+pre-up iw dev wlan0 set power_save off
+post-down iw dev wlan0 set power_save on
+
