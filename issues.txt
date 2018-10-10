@@ -1,0 +1,5 @@
+2018-05-06
+- `sensorgnome-boot` not running, so no bootcount increment
+- `sytsemctl stop sensorgnome-master` doesn't stop master.sh or nodejs
+- continuous re-probing of /media to recreate streams which appeart
+  to get opened with correct filenames but show no trace on disk

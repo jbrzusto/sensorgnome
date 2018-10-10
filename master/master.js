@@ -86,9 +86,14 @@ SafeStream    = require('./safestream.js').SafeStream;
 
 AllOut = new SafeStream(TheMatron, "all", ".txt", 1000000, 3600);
 
-Uploader = new (require('./uploader.js').Uploader) (TheMatron);
+// Uploader = new (require('./uploader.js').Uploader) (TheMatron);
+
+
+// Start the relay, which can resend messages from the matron to an arbitrary port
 
 Relay = new (require('./relay.js').Relay) (TheMatron, 59000);
+
+Radar = new (require('./radar.js').Radar) (TheMatron);
 
 var clockNotSet = false;
 
@@ -119,7 +124,7 @@ TheMatron.on("gpsSetClock", function(prec, elapsed) {
 
 // Start the uploader
 
-Uploader.start();
+// Uploader.start();
 
 // start the GPS reader
 
@@ -138,4 +143,7 @@ WebServer.start();
 
 TagFinder.start();
 
-// Start the relay, which can resend messages from the matron to an arbitrary port
+// if request, start the radar
+
+if (Deployment.radar && Deployment.radar.use)
+    TheMatron.emit("radarStartCapture");

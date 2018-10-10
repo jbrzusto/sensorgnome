@@ -1,6 +1,6 @@
 /*
 
-  Resend messages received from Matron to arbitrary UDP ports.
+  Resend messages in and out of Matron from a specific UDP port.
 
   This module listens on port 59000 for datagrams with this JSON schema:
 
@@ -12,6 +12,12 @@
   of given type are no longer sent to the given port.  If "type"
   is not specified but "enable" is false, then all messages to that
   host, port are cancelled.
+
+  Moreover, any message with this JSON schema:
+
+     {"name":"NAME", data:{...}}
+
+  is emitted to matron as ("NAME", data)
 
   (C) John Brzustowski 2017
   License: GPL v2 or later.
@@ -37,7 +43,7 @@ function Relay (matron, port, address) {
 };
 
 Relay.prototype.msgMatron = function(msg, data) {
-// console.log("Relay: got message " + msg + "\n" + JSON.stringify(data));
+    // DEBUG:    console.log("Relay: got message " + msg + "\n" + JSON.stringify(data));
     if (this.relays[msg]) {
         data = new Buffer(data.toString());
         for (var n in this.relays[msg]) {
@@ -50,32 +56,40 @@ Relay.prototype.msgMatron = function(msg, data) {
 Relay.prototype.msgSock = function(msg, rinfo) {
     try {
         var req = JSON.parse(msg);
-        // console.log("Relay: got sock request " +JSON.stringify(req) + " " + rinfo.address + " " + rinfo.port + "\n");
-        if (req.type && ! this.relays[req.type]) {
-            this.relays[req.type] = [];
-            var msg = req.type;
-            var g = this.this_msgMatron;
-            var cb = function(data) {g(msg, data)};
-            this.callbacks[req.type] = cb;
-            this.matron.on(req.type, cb);
-        }
-        if (req.enable) {
-            this.relays[req.type][rinfo.address + ":" + rinfo.port] = rinfo; // addressed by host:port for easy deletion
-        } else {
-            // delete relay for specified type, or all types if none given
-            var reqs = req.type ? [req.type] : Object.keys(this.relays);
-            for (var i in reqs) {
-                var req = reqs[i];
-                // console.log("Trying to delete for " + req + "\n");
-                delete this.relays[req][rinfo.address + ":" + rinfo.port];
-                if (Object.keys(this.relays[req]).length == 0) {
-                    this.matron.removeListener(req, this.this_msgMatron);
-                    delete this.relays[req];
-                    delete this.callbacks[req];
+        // DEBUG:  console.log("Relay: got sock request " +JSON.stringify(req) + " " + rinfo.address + " " + rinfo.port + "\n");
+        if (req.type) {
+            if (! this.relays[req.type]) {
+                this.relays[req.type] = [];
+                var msg = req.type;
+                var g = this.this_msgMatron;
+                var cb = function(data) {g(msg, data)};
+                this.callbacks[req.type] = cb;
+                this.matron.on(req.type, cb);
+            }
+            if (req.enable) {
+                this.relays[req.type][rinfo.address + ":" + rinfo.port] = rinfo; // addressed by host:port for easy deletion
+            } else {
+                // delete relay for specified type, or all types if none given
+                var reqs = req.type ? [req.type] : Object.keys(this.relays);
+                for (var i in reqs) {
+                    var req = reqs[i];
+                    // DEBUG:  console.log("Trying to delete for " + req + "\n");
+                    delete this.relays[req][rinfo.address + ":" + rinfo.port];
+                    if (Object.keys(this.relays[req]).length == 0) {
+                        this.matron.removeListener(req, this.this_msgMatron);
+                        delete this.relays[req];
+                        delete this.callbacks[req];
+                    }
                 }
             }
+        } else if (req.name) {
+            if (req.data)
+                this.matron.emit(req.name, req.data);
+            else
+                this.matron.emit(req.name)
         }
     } catch(e) {
+        // DEBUG:  console.log("relay error: " + e.toString());
         // ignore malformed msgs
     };
 };

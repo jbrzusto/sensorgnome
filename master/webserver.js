@@ -15,6 +15,7 @@ Io = require('socket.io'),
 Http = require('http');
 
 function WebServer(matron) {
+    console.log("making web server");
     this.matron = matron;
     this.sock = null;
     this.app = null;
@@ -286,10 +287,6 @@ WebServer.prototype.clientDisconnected = function () {
         delete this.rawStream;
         this.rawStream = null;
     }
-    if (this.sweepWatcher) {
-        this.sweepWatcher.close()
-        this.sweepWatcher = null;
-    };
 };
 
 WebServer.prototype.pushData = function (data) {
@@ -304,22 +301,26 @@ WebServer.prototype.setParamError = function (data) {
     }
 };
 
-WebServer.prototype.haveSweep = function (event, filename) {
-    if (filename == "haveSweep") {
-        Fs.readFile("/dev/shm/sweep.json", this.this_pushSweepMetadata);
-    }
+WebServer.prototype.haveSweep = function (info) {
+    Fs.readFile(info.meta, this.this_pushSweepMetadata);
+    Fs.readFile(info.jpg, this.this_pushSweepJpeg);
 };
 
 WebServer.prototype.pushSweepMetadata = function (err, data) {
     if (!err && this.sock) {
         this.sock.emit('sweepMetadata', data.toString());
-        Fs.readFile("/dev/shm/sweep.jpg", this.this_pushSweepJpeg);
+        console.log("Pushed sweep metadata");
+    } else if (err) {
+        console.log("webserver.pushSweepMetadata error: " + err);
     }
 };
 
 WebServer.prototype.pushSweepJpeg = function (err, data) {
     if (!err && this.sock) {
         this.sock.emit('sweepJpeg', data);
+        console.log("Pushed sweep jpgdata");
+    } else if (err) {
+        console.log("webserver.pushSweepJpeg error: " + err);
     }
 };
 
@@ -340,6 +341,7 @@ WebServer.prototype.handleWebConnection = function (socket) {
     socket.on('setclock'      , this.this_requestedSetClock);
 
     if (! this.haveRegisteredListeners) {
+        console.log("web server: adding registered listeners");
         this.matron.on('gotGPSFix'    , this.this_pushGPSFix);
         this.matron.on('gotTag'       , this.this_pushTag);
         this.matron.on('setParam'     , this.this_pushParam);
@@ -347,9 +349,9 @@ WebServer.prototype.handleWebConnection = function (socket) {
         this.matron.on('devAdded'     , this.this_deviceInfoChanged);
         this.matron.on('devRemoved'   , this.this_deviceInfoChanged);
         this.matron.on('vahData'      , this.this_pushData);
-        this.haveRegisteredListeners = true;
         // register a watcher for new sweeps in /dev/shm
-        this.sweepWatcher = Fs.watch("/dev/shm/messages", this.this_haveSweep);
+        this.matron.on('radarImage'   , this.this_haveSweep);
+        this.haveRegisteredListeners = true;
     };
 
     this.sendMachineInfo();
