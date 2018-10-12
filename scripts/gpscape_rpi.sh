@@ -60,7 +60,7 @@ if (( $HAVECAPE )); then
         mkdir /dev/sensorgnome
         ## add a link in /dev/sensorgnome so the web interface can indicate
         ## this GPS is present.
-        ln -f -s $GPS /dev/sensorgnome/gps.port=0.pps=1.type=cape
+        ln -f -s $GPS /dev/sensorgnome/gps.port=0.pps=1.type=hat
 fi
 
 systemctl restart chrony
