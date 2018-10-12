@@ -101,8 +101,14 @@ USBAudio.prototype.hw_startStop = function(on) {
 USBAudio.prototype.hw_stalled = function() {
     // reset this device
     if (this.command) {
+	console.log("got to hw_stalled\n");
         ChildProcess.execFile(this.command, this.baseArgs.concat("-R"));
     }
+    var dev = JSON.parse(JSON.stringify(this.dev));
+    // re-add after 5 seconds
+    setTimeout(function(){TheMatron.emit("devAdded", dev)}, 5000);
+    // remove now
+    this.matron.emit("devRemoved", this.dev);
 };
 
 
