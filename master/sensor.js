@@ -7,8 +7,8 @@
   - issuing VAH commands to start the sensor (on whatever schedule)
   - issuing shell commands to set sensor parameters (on whatever schedule)
   - respond to "devRemoved" messages by shutting down
-  - respond to "devStalled" messages by and resetting + restarting the
-    device
+  - respond to "devStalled" messages by dispatching to hardware-specific
+    handlers
 
 */
 
@@ -27,6 +27,7 @@ Sensor = function(matron, dev, devPlan) {
     this.on = false; // is the device supposed to be on right now?
     this.lastParSetting = null;
     this.rawFiling = false;  // are we supposed to be recording raw files?
+    this.restartTimeout = null; // timeout event for restarting device, e.g. after a stall
 
     // callback closures
     this.this_init                   = this.init.bind(this);
@@ -89,7 +90,7 @@ Sensor.prototype.devRemoved = function(dev) {
 };
 
 Sensor.prototype.devStalled = function(vahDevLabel) {
-// DEBUG: console.log("Got devStalled with " + vahDevLabel + "\n");
+    console.log("Got devStalled with " + vahDevLabel + "\n");
     if (vahDevLabel = this.dev.attr.port)
         this.stalled();
 };
