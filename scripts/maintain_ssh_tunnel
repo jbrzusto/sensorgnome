@@ -2,29 +2,28 @@
 #
 # maintain a reverse tunnel portmap to sensorgnome.org
 # run every 5 minutes from /etc/cron.d
+#
+# map server:TUNNEL_PORT -> localhost:22  (ssh reverse tunnel)
+# map localhost:59024 -> server:59024     (message streaming)
 
-export AUTOSSH_PIDFILE=/var/run/autossh
-TUNNEL_PORT_FILE=/home/pi/.ssh/tunnel_port
-UNIQUE_KEY_FILE=/home/pi/.ssh/id_dsa
-UPLOAD_USER=sg_remote
-UPLOAD_HOST=sensorgnome.org
-UPLOAD_SSH_PORT=59022
+TUNNEL_PORT_FILE=/home/bone/.ssh/tunnel_port
+UNIQUE_KEY_FILE=/home/bone/.ssh/id_dsa
+REMOTE_USER=sg_remote
+REMOTE_HOST=sensorgnome.org
+REMOTE_SSH_PORT=59022
+REMOTE_STREAM_PORT=59024
+LOCAL_STREAM_PORT=59024
 
 if [[ -f $TUNNEL_PORT_FILE ]]; then
-    if [[ -f $AUTOSSH_PIDFILE ]]; then
-        read PID < $AUTOSSH_PIDFILE
-        if [[ `readlink /proc/$PID/exe` == '/usr/lib/autossh/autossh' ]]; then
-            exit 0;
-        fi
-    fi
     read TUNNEL_PORT < $TUNNEL_PORT_FILE
-    autossh -M 0 -f -N -T -R$TUNNEL_PORT:localhost:22 \
-        -o ExitOnForwardFailure=yes \
+    ssh -f -N -T \
+        -L$LOCAL_STREAM_PORT:localhost:$REMOTE_STREAM_PORT \
+        -R$TUNNEL_PORT:localhost:22 \
         -o ControlMaster=auto \
         -o ControlPath=/tmp/sgremote \
         -o ServerAliveInterval=5 \
         -o ServerAliveCountMax=3 \
         -i $UNIQUE_KEY_FILE \
-        -p $UPLOAD_SSH_PORT \
-        $UPLOAD_USER@$UPLOAD_HOST
+        -p $REMOTE_SSH_PORT \
+        $REMOTE_USER@$REMOTE_HOST
 fi

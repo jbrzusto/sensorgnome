@@ -11,17 +11,10 @@
 function Uploader(matron) {
 
     this.matron = matron;
-    this.prog = "/usr/bin/ssh";
+    this.prog = "/bin/nc";
     this.prog_args = [
-        "-T",                              // no pseudo-tty
-        "-o", "ControlMaster=auto",        // use the already established master control socket
-        "-o", "ControlPath=/tmp/sgremote", 
-        "-o", "ServerAliveInterval=5",     // make sure the server is alive
-        "-o", "ServerAliveCountMax=3",
-        "-i", "/home/pi/.ssh/id_dsa",    // use our unique key, not the factory key
-        "-p", "59022",                     // the sensorgnome.org special ssh server listens on port 59022
-        "sg_remote@sensorgnome.org",       // who@where
-        "/home/sg_remote/code/sg_remote"   // probably overridden by the ssh server, but specified here in case not
+        "localhost",
+        "59024"
     ];
 
     this.child = null;
@@ -78,7 +71,7 @@ Uploader.prototype.childDied = function(code, signal) {
 Uploader.prototype.spawnChild = function() {
     if (this.quitting)
         return;
-    
+
     this.child = ChildProcess.spawn(this.prog, this.prog_args, {env: process.env});
     this.child.on("exit", this.this_childDied);
     this.child.on("error", this.this_childDied);
@@ -121,7 +114,7 @@ Uploader.prototype.pushTag = function(s) {
         //              0    1  2   3     4     5    6    7      8     9     10     11       12      13
         // we keep only port,ts,id,freq,freqsd,sig,sigsd,noise,slop,burstslop,antfreq
         // i.e. drop parts with indices 8, 9, 12
-        if (parts.length == 13 && parts[0] != "ant") { // don't send header
+        if (parts.length == 14 && parts[0] != "ant") { // don't send header
             parts.splice(8, 2);
             parts.splice(10, 1);
             this.child.stdin.write(parts.join(",") + "\n");
@@ -131,19 +124,19 @@ Uploader.prototype.pushTag = function(s) {
 
 Uploader.prototype.pushDevAdded = function(msg) {
     // msg has fields path, attr, stat
-    var ts = (new Date()).getTime()/1000;        
+    var ts = (new Date()).getTime()/1000;
     this.child.stdin.write("A," + ts + "," + msg.attr.port + "," + msg.attr.type + "," + msg.path + "\n");
 };
 
 Uploader.prototype.pushDevRemoved = function(msg) {
     // msg has fields path, attr, stat
-    var ts = (new Date()).getTime()/1000;        
+    var ts = (new Date()).getTime()/1000;
     this.child.stdin.write("R," + ts + "," + msg.attr.port + "," + msg.attr.type + "," + msg.path + "\n");
 };
 
 Uploader.prototype.pushStartupInfo = function() {
     var ts = (new Date()).getTime()/1000;
-    this.child.stdin.write( "M," + ts + ",machineID," + Machine.machineID + "\n" +
+    this.child.stdin.write( "SG-" + Machine.machineID + "\n" + "M," + ts + ",machineID," + Machine.machineID + "\n" +
                             "M," + ts + ",bootCount," + Machine.bootCount + "\n");
 };
 
